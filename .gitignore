@@ -107,3 +107,6 @@ man/manual.tex
 
 # CLion
 .idea
+*.VC.db
+*.VC.VC.opendb
+.qmake.stash

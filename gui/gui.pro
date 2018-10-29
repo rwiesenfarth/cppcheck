@@ -1,8 +1,8 @@
 lessThan(QT_MAJOR_VERSION, 5): error(requires >= Qt 5 (You used: $$QT_VERSION))
 
-TEMPLATE = app
+TEMPLATE = vcapp
 TARGET = cppcheck-gui
-CONFIG += warn_on debug
+CONFIG += qt warn_on release
 DEPENDPATH += . \
     ../lib
 INCLUDEPATH += . \
