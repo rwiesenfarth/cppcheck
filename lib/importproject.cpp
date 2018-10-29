@@ -31,6 +31,76 @@
 #include <utility>
 
 
+static bool simplifyPathWithVariables(std::string &s, std::map<std::string, std::string, cppcheck::stricmp> &variables)
+{
+    std::set<std::string, cppcheck::stricmp> expanded;
+    std::string::size_type start = 0;
+    while ((start = s.find("$(")) != std::string::npos) {
+        const std::string::size_type end = s.find(')',start);
+        if (end == std::string::npos)
+            break;
+        const std::string var = s.substr(start+2,end-start-2);
+        if (expanded.find(var) != expanded.end())
+            break;
+        expanded.insert(var);
+        std::map<std::string, std::string, cppcheck::stricmp>::const_iterator it1 = variables.find(var);
+        // variable was not found within defined variables
+        if (it1 == variables.end()) {
+            const char *envValue = std::getenv(var.c_str());
+            if (!envValue) {
+                //! \todo generate a debug/info message about undefined variable
+                break;
+            }
+            variables[var] = std::string(envValue);
+            it1 = variables.find(var);
+        }
+        s = s.substr(0, start) + it1->second + s.substr(end + 1);
+    }
+    if (s.find("$(") != std::string::npos)
+        return false;
+    s = Path::simplifyPath(Path::fromNativeSeparators(s));
+    return true;
+}
+
+
+static std::list<std::string> collectPaths(const std::string &basepath, const std::list<std::string> &in, std::map<std::string, std::string, cppcheck::stricmp> &variables)
+{
+    std::list<std::string> I;
+    // only parse each includePath once - so remove duplicates
+    std::list<std::string> uniqueIncludePaths = in;
+    uniqueIncludePaths.sort();
+    uniqueIncludePaths.unique();
+    
+    for (const std::string &it : uniqueIncludePaths) {
+        if (it.empty())
+            continue;
+        if (it.compare(0,2,"%(")==0)
+            continue;
+        std::string s(Path::fromNativeSeparators(it));
+        if (s[0] == '/' || (s.size() > 1U && s.compare(1,2,":/") == 0)) {
+            if (!endsWith(s,'/'))
+                s += '/';
+            I.push_back(s);
+            continue;
+        }
+        
+        if (endsWith(s,'/')) // this is a temporary hack, simplifyPath can crash if path ends with '/'
+            s.erase(s.size() - 1U); // TODO: Use std::string::pop_back() as soon as travis supports it
+        
+        if (s.find("$(") == std::string::npos) {
+            s = Path::simplifyPath(basepath + s);
+        } else {
+            if (!simplifyPathWithVariables(s, variables))
+                continue;
+        }
+        if (s.empty())
+            continue;
+        I.push_back(s + '/');
+    }
+    return I;
+}
+
+
 void ImportProject::ignorePaths(const std::vector<std::string> &ipaths)
 {
     for (std::list<FileSettings>::iterator it = fileSettings.begin(); it != fileSettings.end();) {
@@ -45,6 +115,28 @@ void ImportProject::ignorePaths(const std::vector<std::string> &ipaths)
             fileSettings.erase(it++);
         else
             ++it;
+    }
+}
+
+void ImportProject::ignoreIncludePaths(const std::vector<std::string> &ipaths)
+{
+    std::string basepath;
+    std::map<std::string, std::string, cppcheck::stricmp> variables;
+    std::list<std::string> in;
+
+    for(auto path : ipaths)
+    {
+        in.push_back(path);
+    }
+
+    auto paths = collectPaths(basepath, in, variables);
+
+    for(auto &fs : fileSettings)
+    {
+        for(auto ignore : paths)
+        {
+            fs.includePaths.remove(ignore);
+        }
     }
 }
 
@@ -99,72 +191,9 @@ void ImportProject::FileSettings::setDefines(std::string defs)
     defines.swap(defs);
 }
 
-static bool simplifyPathWithVariables(std::string &s, std::map<std::string, std::string, cppcheck::stricmp> &variables)
-{
-    std::set<std::string, cppcheck::stricmp> expanded;
-    std::string::size_type start = 0;
-    while ((start = s.find("$(")) != std::string::npos) {
-        const std::string::size_type end = s.find(')',start);
-        if (end == std::string::npos)
-            break;
-        const std::string var = s.substr(start+2,end-start-2);
-        if (expanded.find(var) != expanded.end())
-            break;
-        expanded.insert(var);
-        std::map<std::string, std::string, cppcheck::stricmp>::const_iterator it1 = variables.find(var);
-        // variable was not found within defined variables
-        if (it1 == variables.end()) {
-            const char *envValue = std::getenv(var.c_str());
-            if (!envValue) {
-                //! \todo generate a debug/info message about undefined variable
-                break;
-            }
-            variables[var] = std::string(envValue);
-            it1 = variables.find(var);
-        }
-        s = s.substr(0, start) + it1->second + s.substr(end + 1);
-    }
-    if (s.find("$(") != std::string::npos)
-        return false;
-    s = Path::simplifyPath(Path::fromNativeSeparators(s));
-    return true;
-}
-
 void ImportProject::FileSettings::setIncludePaths(const std::string &basepath, const std::list<std::string> &in, std::map<std::string, std::string, cppcheck::stricmp> &variables)
 {
-    std::list<std::string> I;
-    // only parse each includePath once - so remove duplicates
-    std::list<std::string> uniqueIncludePaths = in;
-    uniqueIncludePaths.sort();
-    uniqueIncludePaths.unique();
-
-    for (const std::string &it : uniqueIncludePaths) {
-        if (it.empty())
-            continue;
-        if (it.compare(0,2,"%(")==0)
-            continue;
-        std::string s(Path::fromNativeSeparators(it));
-        if (s[0] == '/' || (s.size() > 1U && s.compare(1,2,":/") == 0)) {
-            if (!endsWith(s,'/'))
-                s += '/';
-            I.push_back(s);
-            continue;
-        }
-
-        if (endsWith(s,'/')) // this is a temporary hack, simplifyPath can crash if path ends with '/'
-            s.erase(s.size() - 1U); // TODO: Use std::string::pop_back() as soon as travis supports it
-
-        if (s.find("$(") == std::string::npos) {
-            s = Path::simplifyPath(basepath + s);
-        } else {
-            if (!simplifyPathWithVariables(s, variables))
-                continue;
-        }
-        if (s.empty())
-            continue;
-        I.push_back(s + '/');
-    }
-    includePaths.swap(I);
+    includePaths.swap(collectPaths(basepath, in, variables));
 }
 
 ImportProject::Type ImportProject::import(const std::string &filename)

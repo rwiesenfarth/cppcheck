@@ -70,6 +70,12 @@ private:
     QStringList getIncludePaths() const;
 
     /**
+    * @brief Return ignored include paths from the dialog control.
+    * @return List of ignored include paths.
+    */
+    QStringList getIgnoredIncludePaths() const;
+
+    /**
     * @brief Return define names from the dialog control.
     * @return List of define names.
     */
@@ -123,6 +129,12 @@ private:
     * @param includes List of include paths to set to dialog control.
     */
     void setIncludepaths(const QStringList &includes);
+
+    /**
+    * @brief Set ignored include paths to dialog control.
+    * @param includes List of ignored include paths to set to dialog control.
+    */
+    void setIgnoredincludepaths(const QStringList &ignoredincludes);
 
     /**
     * @brief Set define names to dialog control.
@@ -212,6 +224,22 @@ protected slots:
     void editIncludeDir();
 
     /**
+    * @brief Browse for include directory.
+    * Allow user to add new include directory to the list.
+    */
+    void addIgnoredIncludeDir();
+
+    /**
+    * @brief Remove include directory from the list.
+    */
+    void removeIgnoredIncludeDir();
+
+    /**
+    * @brief Edit include directory in the list.
+    */
+    void editIgnoredIncludeDir();
+
+    /**
     * @brief Add new path to exclude.
     */
     void addExcludePath();
@@ -269,10 +297,16 @@ protected:
     void saveSettings() const;
 
     /**
-    * @brief Add new indlude directory.
+    * @brief Add new include directory.
     * @param dir Directory to add.
     */
     void addIncludeDir(const QString &dir);
+
+    /**
+    * @brief Add new ignored include directory.
+    * @param dir Directory to add.
+    */
+    void addIgnoredIncludeDir(const QString &dir);
 
     /**
     * @brief Add new path to check.

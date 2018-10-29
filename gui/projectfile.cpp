@@ -30,8 +30,10 @@ static const char ProjectVersionAttrib[] = "version";
 static const char ProjectFileVersion[] = "1";
 static const char BuildDirElementName[] = "builddir";
 static const char ImportProjectElementName[] = "importproject";
+static const char VsConfigElementName[] = "vsconfig";
 static const char AnalyzeAllVsConfigsElementName[] = "analyze-all-vs-configs";
 static const char IncludeDirElementName[] = "includedir";
+static const char IgnoreIncludeDirElementName[] = "ignoreincludedir";
 static const char DirElementName[] = "dir";
 static const char DirNameAttrib[] = "name";
 static const char DefinesElementName[] = "defines";
@@ -82,7 +84,9 @@ void ProjectFile::clear()
     mBuildDir.clear();
     mImportProject.clear();
     mAnalyzeAllVsConfigs = true;
+    mVsConfig.clear();
     mIncludeDirs.clear();
+    mIgnoredIncludeDirs.clear();
     mDefines.clear();
     mUndefines.clear();
     mPaths.clear();
@@ -133,9 +137,16 @@ bool ProjectFile::read(const QString &filename)
             if (insideProject && xmlReader.name() == AnalyzeAllVsConfigsElementName)
                 readAnalyzeAllVsConfigs(xmlReader);
 
+            if (insideProject && xmlReader.name() == VsConfigElementName)
+              readVsConfig(xmlReader);
+
             // Find include directory from inside project element
             if (insideProject && xmlReader.name() == IncludeDirElementName)
                 readIncludeDirs(xmlReader);
+
+            // Find include directory from inside project element
+            if (insideProject && xmlReader.name() == IgnoreIncludeDirElementName)
+                readIgnoredIncludeDirs(xmlReader);
 
             // Find preprocessor define from inside project element
             if (insideProject && xmlReader.name() == DefinesElementName)
@@ -287,6 +298,31 @@ void ProjectFile::readAnalyzeAllVsConfigs(QXmlStreamReader &reader)
     } while (1);
 }
 
+void ProjectFile::readVsConfig(QXmlStreamReader &reader)
+{
+    mVsConfig.clear();
+    do {
+        const QXmlStreamReader::TokenType type = reader.readNext();
+        switch (type) {
+            case QXmlStreamReader::Characters:
+                mVsConfig = reader.text().toString();
+            case QXmlStreamReader::EndElement:
+                return;
+                // Not handled
+            case QXmlStreamReader::StartElement:
+            case QXmlStreamReader::NoToken:
+            case QXmlStreamReader::Invalid:
+            case QXmlStreamReader::StartDocument:
+            case QXmlStreamReader::EndDocument:
+            case QXmlStreamReader::Comment:
+            case QXmlStreamReader::DTD:
+            case QXmlStreamReader::EntityReference:
+            case QXmlStreamReader::ProcessingInstruction:
+                break;
+        }
+    } while (1);
+}
+
 void ProjectFile::readIncludeDirs(QXmlStreamReader &reader)
 {
     QXmlStreamReader::TokenType type;
@@ -321,6 +357,44 @@ void ProjectFile::readIncludeDirs(QXmlStreamReader &reader)
         case QXmlStreamReader::EntityReference:
         case QXmlStreamReader::ProcessingInstruction:
             break;
+        }
+    } while (!allRead);
+}
+
+void ProjectFile::readIgnoredIncludeDirs(QXmlStreamReader &reader)
+{
+    QXmlStreamReader::TokenType type;
+    bool allRead = false;
+    do {
+        type = reader.readNext();
+        switch (type) {
+            case QXmlStreamReader::StartElement:
+            
+                // Read dir-elements
+                if (reader.name().toString() == DirElementName) {
+                    QXmlStreamAttributes attribs = reader.attributes();
+                    QString name = attribs.value(QString(), DirNameAttrib).toString();
+                    if (!name.isEmpty())
+                        mIgnoredIncludeDirs << name;
+                }
+                break;
+            
+            case QXmlStreamReader::EndElement:
+                if (reader.name().toString() == IgnoreIncludeDirElementName)
+                    allRead = true;
+                break;
+            
+              // Not handled
+            case QXmlStreamReader::NoToken:
+            case QXmlStreamReader::Invalid:
+            case QXmlStreamReader::StartDocument:
+            case QXmlStreamReader::EndDocument:
+            case QXmlStreamReader::Characters:
+            case QXmlStreamReader::Comment:
+            case QXmlStreamReader::DTD:
+            case QXmlStreamReader::EntityReference:
+            case QXmlStreamReader::ProcessingInstruction:
+                break;
         }
     } while (!allRead);
 }
@@ -559,6 +633,11 @@ void ProjectFile::setIncludes(const QStringList &includes)
     mIncludeDirs = includes;
 }
 
+void ProjectFile::setIgnoredIncludes(const QStringList &includes)
+{
+  mIgnoredIncludeDirs = includes;
+}
+
 void ProjectFile::setDefines(const QStringList &defines)
 {
     mDefines = defines;
@@ -642,6 +721,12 @@ bool ProjectFile::write(const QString &filename)
     xmlWriter.writeCharacters(mAnalyzeAllVsConfigs ? "true" : "false");
     xmlWriter.writeEndElement();
 
+    if (!mVsConfig.isEmpty()) {
+        xmlWriter.writeStartElement(VsConfigElementName);
+        xmlWriter.writeCharacters(mVsConfig);
+        xmlWriter.writeEndElement();
+    }
+
     if (!mIncludeDirs.isEmpty()) {
         xmlWriter.writeStartElement(IncludeDirElementName);
         foreach (QString incdir, mIncludeDirs) {
@@ -650,6 +735,16 @@ bool ProjectFile::write(const QString &filename)
             xmlWriter.writeEndElement();
         }
         xmlWriter.writeEndElement();
+    }
+
+    if (!mIgnoredIncludeDirs.isEmpty()) {
+      xmlWriter.writeStartElement(IgnoreIncludeDirElementName);
+      foreach (QString incdir, mIgnoredIncludeDirs) {
+        xmlWriter.writeStartElement(DirElementName);
+        xmlWriter.writeAttribute(DirNameAttrib, incdir);
+        xmlWriter.writeEndElement();
+      }
+      xmlWriter.writeEndElement();
     }
 
     if (!mDefines.isEmpty()) {

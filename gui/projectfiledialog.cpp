@@ -159,6 +159,9 @@ ProjectFileDialog::ProjectFileDialog(ProjectFile *projectFile, QWidget *parent)
     connect(mUI.mBtnAddInclude, SIGNAL(clicked()), this, SLOT(addIncludeDir()));
     connect(mUI.mBtnEditInclude, &QPushButton::clicked, this, &ProjectFileDialog::editIncludeDir);
     connect(mUI.mBtnRemoveInclude, &QPushButton::clicked, this, &ProjectFileDialog::removeIncludeDir);
+    connect(mUI.mBtnAddIgnoreIncludeDirs, SIGNAL(clicked()), this, SLOT(addIgnoredIncludeDir()));
+    connect(mUI.mBtnEditIgnoreIncludeDirs, &QPushButton::clicked, this, &ProjectFileDialog::editIgnoredIncludeDir);
+    connect(mUI.mBtnRemoveIgnoreIncludeDirs, &QPushButton::clicked, this, &ProjectFileDialog::removeIgnoredIncludeDir);
     connect(mUI.mBtnAddIgnorePath, SIGNAL(clicked()), this, SLOT(addExcludePath()));
     connect(mUI.mBtnEditIgnorePath, &QPushButton::clicked, this, &ProjectFileDialog::editExcludePath);
     connect(mUI.mBtnRemoveIgnorePath, &QPushButton::clicked, this, &ProjectFileDialog::removeExcludePath);
@@ -168,6 +171,7 @@ ProjectFileDialog::ProjectFileDialog(ProjectFile *projectFile, QWidget *parent)
     connect(mUI.mBtnRemoveSuppression, &QPushButton::clicked, this, &ProjectFileDialog::removeSuppression);
     connect(mUI.mListSuppressions, &QListWidget::doubleClicked, this, &ProjectFileDialog::editSuppression);
     connect(mUI.mBtnBrowseMisraFile, &QPushButton::clicked, this, &ProjectFileDialog::browseMisraFile);
+    connect(mUI.mChkAllVsConfigs, &QPushButton::toggled, this, &ProjectFileDialog::updatePathsAndDefines);
 
     loadFromProjectFile(projectFile);
 }
@@ -206,11 +210,13 @@ void ProjectFileDialog::loadFromProjectFile(const ProjectFile *projectFile)
     setRootPath(projectFile->getRootPath());
     setBuildDir(projectFile->getBuildDir());
     setIncludepaths(projectFile->getIncludeDirs());
+    setIgnoredincludepaths(projectFile->getIgnoredIncludeDirs());
     setDefines(projectFile->getDefines());
     setUndefines(projectFile->getUndefines());
     setCheckPaths(projectFile->getCheckPaths());
     setImportProject(projectFile->getImportProject());
     mUI.mChkAllVsConfigs->setChecked(projectFile->getAnalyzeAllVsConfigs());
+    mUI.mEditVsConfig->setText(projectFile->getVsConfig());
     setExcludedPaths(projectFile->getExcludedPaths());
     setLibraries(projectFile->getLibraries());
     const QString platform = projectFile->getPlatform();
@@ -275,7 +281,9 @@ void ProjectFileDialog::saveToProjectFile(ProjectFile *projectFile) const
     projectFile->setBuildDir(getBuildDir());
     projectFile->setImportProject(getImportProject());
     projectFile->setAnalyzeAllVsConfigs(mUI.mChkAllVsConfigs->isChecked());
+    projectFile->setVsConfig(mUI.mEditVsConfig->text());
     projectFile->setIncludes(getIncludePaths());
+    projectFile->setIgnoredIncludes(getIgnoredIncludePaths());
     projectFile->setDefines(getDefines());
     projectFile->setUndefines(getUndefines());
     projectFile->setCheckPaths(getCheckPaths());
@@ -362,7 +370,12 @@ void ProjectFileDialog::updatePathsAndDefines()
     mUI.mBtnRemoveInclude->setEnabled(!importProject);
     mUI.mBtnIncludeUp->setEnabled(!importProject);
     mUI.mBtnIncludeDown->setEnabled(!importProject);
+    mUI.mListIgnoreIncludeDirs->setEnabled(importProject);
+    mUI.mBtnAddIgnoreIncludeDirs->setEnabled(importProject);
+    mUI.mBtnEditIgnoreIncludeDirs->setEnabled(importProject);
+    mUI.mBtnRemoveIgnoreIncludeDirs->setEnabled(importProject);
     mUI.mChkAllVsConfigs->setEnabled(fileName.endsWith(".sln") || fileName.endsWith(".vcxproj"));
+    mUI.mEditVsConfig->setEnabled(mUI.mChkAllVsConfigs->isEnabled() && !mUI.mChkAllVsConfigs->isChecked());
 }
 
 void ProjectFileDialog::clearImportProject()
@@ -404,6 +417,17 @@ void ProjectFileDialog::addIncludeDir(const QString &dir)
     mUI.mListIncludeDirs->addItem(item);
 }
 
+void ProjectFileDialog::addIgnoredIncludeDir(const QString &dir)
+{
+  if (dir.isNull() || dir.isEmpty())
+    return;
+
+  const QString newdir = QDir::toNativeSeparators(dir);
+  QListWidgetItem *item = new QListWidgetItem(newdir);
+  item->setFlags(item->flags() | Qt::ItemIsEditable);
+  mUI.mListIgnoreIncludeDirs->addItem(item);
+}
+
 void ProjectFileDialog::addCheckPath(const QString &path)
 {
     if (path.isNull() || path.isEmpty())
@@ -442,6 +466,11 @@ QString ProjectFileDialog::getBuildDir() const
 QStringList ProjectFileDialog::getIncludePaths() const
 {
     return getPaths(mUI.mListIncludeDirs);
+}
+
+QStringList ProjectFileDialog::getIgnoredIncludePaths() const
+{
+  return getPaths(mUI.mListIgnoreIncludeDirs);
 }
 
 QStringList ProjectFileDialog::getDefines() const
@@ -497,6 +526,13 @@ void ProjectFileDialog::setIncludepaths(const QStringList &includes)
     foreach (QString dir, includes) {
         addIncludeDir(dir);
     }
+}
+
+void ProjectFileDialog::setIgnoredincludepaths(const QStringList &includes)
+{
+  foreach (QString dir, includes) {
+    addIgnoredIncludeDir(dir);
+  }
 }
 
 void ProjectFileDialog::setDefines(const QStringList &defines)
@@ -583,6 +619,26 @@ void ProjectFileDialog::editIncludeDir()
 {
     QListWidgetItem *item = mUI.mListIncludeDirs->currentItem();
     mUI.mListIncludeDirs->editItem(item);
+}
+
+void ProjectFileDialog::addIgnoredIncludeDir()
+{
+  const QString dir = getExistingDirectory(tr("Select include directory to be ignored"), true);
+  if (!dir.isEmpty())
+    addIgnoredIncludeDir(dir);
+}
+
+void ProjectFileDialog::removeIgnoredIncludeDir()
+{
+  const int row = mUI.mListIgnoreIncludeDirs->currentRow();
+  QListWidgetItem *item = mUI.mListIgnoreIncludeDirs->takeItem(row);
+  delete item;
+}
+
+void ProjectFileDialog::editIgnoredIncludeDir()
+{
+  QListWidgetItem *item = mUI.mListIgnoreIncludeDirs->currentItem();
+  mUI.mListIgnoreIncludeDirs->editItem(item);
 }
 
 void ProjectFileDialog::addExcludePath()

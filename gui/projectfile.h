@@ -68,12 +68,28 @@ public:
         return mAnalyzeAllVsConfigs;
     }
 
+    QString getVsConfig() const {
+        return mVsConfig;
+    }
+
     /**
     * @brief Get list of include directories.
     * @return list of directories.
     */
     QStringList getIncludeDirs() const {
         return ProjectFile::fromNativeSeparators(mIncludeDirs);
+    }
+
+    /**
+    * @brief Get list of ignored include directories.
+    * @return list of directories.
+    *
+    * May contain $(...) variables.
+    * @restrict Must be absolute path.
+    * @restrict Only environment variables supported.
+    */
+    QStringList getIgnoredIncludeDirs() const {
+        return ProjectFile::fromNativeSeparators(mIgnoredIncludeDirs);
     }
 
     /**
@@ -194,11 +210,21 @@ public:
         mAnalyzeAllVsConfigs = b;
     }
 
+    void setVsConfig(const QString &vsConfig) {
+        mVsConfig = vsConfig;
+    }
+
     /**
      * @brief Set list of includes.
      * @param includes List of defines.
      */
     void setIncludes(const QStringList &includes);
+
+    /**
+    * @brief Set list of ignored includes.
+    * @param includes List of defines.
+    */
+    void setIgnoredIncludes(const QStringList &includes);
 
     /**
      * @brief Set list of defines.
@@ -288,11 +314,19 @@ protected:
 
     void readAnalyzeAllVsConfigs(QXmlStreamReader &reader);
 
+    void readVsConfig(QXmlStreamReader &reader);
+
     /**
      * @brief Read list of include directories from XML.
      * @param reader XML stream reader.
      */
     void readIncludeDirs(QXmlStreamReader &reader);
+
+    /**
+    * @brief Read list of ignored include directories from XML.
+    * @param reader XML stream reader.
+    */
+    void readIgnoredIncludeDirs(QXmlStreamReader &reader);
 
     /**
      * @brief Read list of defines from XML.
@@ -371,15 +405,27 @@ private:
 
     /**
      * Should all visual studio configurations be analyzed?
-     * If this is false then only the Debug configuration
+     * If this is false then only the explicitely specified configuration
+     * (see below) or the Debug configuration
      * for the set platform is analyzed.
      */
     bool mAnalyzeAllVsConfigs;
 
     /**
+     * If not all visual studio configurations are to be analyzed, this
+     * is the one chosen.
+     */
+    QString mVsConfig;
+
+    /**
      * @brief List of include directories used to search include files.
      */
     QStringList mIncludeDirs;
+
+    /**
+    * @brief List of include directories to be ignored when searching include files.
+    */
+    QStringList mIgnoredIncludeDirs;
 
     /**
      * @brief List of defines.
