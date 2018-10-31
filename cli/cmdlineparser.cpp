@@ -31,6 +31,8 @@
 #include "timer.h"
 #include "utils.h"
 
+#include "../gui/projectfile.h"
+
 #include <algorithm>
 #include <cstdio>
 #include <cstdlib> // EXIT_FAILURE
@@ -115,7 +117,7 @@ void CmdLineParser::printMessage(const char* message)
     std::cout << message << std::endl;
 }
 
-bool CmdLineParser::loadImportProject(const char exename[], const std::string & projectFile)
+bool CmdLineParser::loadImportProject(const char exename[], const std::string& projectFile)
 {
     const ImportProject::Type projType = mSettings->project.import(projectFile);
     if (projType == ImportProject::VS_SLN || projType == ImportProject::VS_VCXPROJ) {
@@ -134,6 +136,70 @@ bool CmdLineParser::loadImportProject(const char exename[], const std::string & 
         return false;
     }
     return true;
+}
+
+bool CmdLineParser::loadGuiProject(const char exename[], const std::string& projectFile) {
+    ProjectFile project;
+
+    printMessage("diag: try loading '" + projectFile + "'.");
+    if (!project.read(QString::fromStdString(projectFile))) {
+        printMessage("cppcheck: Failed to load GUI project '" + projectFile + "'.");
+        return false;
+    }
+    printMessage("diag: successfully read GUI project");
+
+    // QString getRootPath()
+    // -rp / --relative-paths ?
+
+    // QString getBuildDir()
+    // --cppcheck-build-dir
+
+    // QString getImportProject()
+    // --project
+
+    // bool getAnalyzeAllVsConfigs()
+    // (none)
+
+    // QStringList getIncludeDirs() const
+    // -I
+
+    // QStringList getDefines() const
+    // -D
+
+    // QStringList getUndefines() const
+    // -U
+
+    // QStringList getCheckPaths()
+    // --file-list
+
+    // QStringList getExcludedPaths() const
+    // --config-exclude / --config-exclude-files
+
+    // QStringList getLibraries() const
+    // --library
+
+    // QString getPlatform() const
+    // --platform
+
+    // QList<Suppressions::Suppression> getSuppressions() const
+    // --suppress / --suppressions-list
+
+    // QStringList getAddons() const
+    // unsupported ?
+
+    // QStringList getAddonsAndTools() const
+    // unsupported ?
+
+    // bool getClangAnalyzer() const
+    // unsupported
+
+    // bool getClangTidy() const
+    // unsupported
+
+    // QStringList getTags() const
+    // ?
+
+    return false;
 }
 
 bool CmdLineParser::parseFromArgs(int argc, const char* const argv[])
@@ -537,6 +603,12 @@ bool CmdLineParser::parseFromArgs(int argc, const char* const argv[])
             // --project
             else if (std::strncmp(argv[i], "--project=", 10) == 0) {
                 if (!loadImportProject(argv[0], argv[i]+10))
+                    return false;
+            }
+
+            // --guiproject
+            else if (std::strncmp(argv[i], "--guiproject=", 13) == 0) {
+                if (!loadGuiProject(argv[0], argv[i]+13))
                     return false;
             }
 

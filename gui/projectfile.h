@@ -36,7 +36,7 @@
 * example a list of include paths.
 */
 class ProjectFile : public QObject {
-    Q_OBJECT
+    //Q_OBJECT
 
 public:
     explicit ProjectFile(QObject *parent = 0);

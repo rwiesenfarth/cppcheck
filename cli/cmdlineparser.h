@@ -112,6 +112,11 @@ private:
      */
     bool loadImportProject(const char exename[], const std::string &projectFile);
 
+    /**
+     * Load a project created using cppcheck-gui
+     */
+    bool loadGuiProject(const char exename[], const std::string &projectFile);
+
     std::vector<std::string> mPathNames;
     std::vector<std::string> mIgnoredPaths;
     Settings *mSettings;
