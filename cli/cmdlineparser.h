@@ -107,6 +107,11 @@ protected:
     static void printMessage(const char* message);
 
 private:
+    /**
+     * Load the import project into mSettings.
+     */
+    bool loadImportProject(const char exename[], const std::string &projectFile);
+
     std::vector<std::string> mPathNames;
     std::vector<std::string> mIgnoredPaths;
     Settings *mSettings;

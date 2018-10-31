@@ -115,6 +115,27 @@ void CmdLineParser::printMessage(const char* message)
     std::cout << message << std::endl;
 }
 
+bool CmdLineParser::loadImportProject(const char exename[], const std::string & projectFile)
+{
+    const ImportProject::Type projType = mSettings->project.import(projectFile);
+    if (projType == ImportProject::VS_SLN || projType == ImportProject::VS_VCXPROJ) {
+        if (!CppCheckExecutor::tryLoadLibrary(mSettings->library, exename, "windows.cfg")) {
+            // This shouldn't happen normally.
+            printMessage("cppcheck: Failed to load 'windows.cfg'. Your Cppcheck installation is broken. Please re-install.");
+            return false;
+        }
+    }
+    if (projType == ImportProject::MISSING) {
+        printMessage("cppcheck: Failed to open project '" + projectFile + "'.");
+        return false;
+    }
+    if (projType == ImportProject::UNKNOWN) {
+        printMessage("cppcheck: Failed to load project '" + projectFile + "'. The format is unknown.");
+        return false;
+    }
+    return true;
+}
+
 bool CmdLineParser::parseFromArgs(int argc, const char* const argv[])
 {
     bool def = false;
@@ -515,23 +536,8 @@ bool CmdLineParser::parseFromArgs(int argc, const char* const argv[])
 
             // --project
             else if (std::strncmp(argv[i], "--project=", 10) == 0) {
-                const std::string projectFile = argv[i]+10;
-                const ImportProject::Type projType = mSettings->project.import(projectFile);
-                if (projType == ImportProject::VS_SLN || projType == ImportProject::VS_VCXPROJ) {
-                    if (!CppCheckExecutor::tryLoadLibrary(mSettings->library, argv[0], "windows.cfg")) {
-                        // This shouldn't happen normally.
-                        printMessage("cppcheck: Failed to load 'windows.cfg'. Your Cppcheck installation is broken. Please re-install.");
-                        return false;
-                    }
-                }
-                if (projType == ImportProject::MISSING) {
-                    printMessage("cppcheck: Failed to open project '" + projectFile + "'.");
+                if (!loadImportProject(argv[0], argv[i]+10))
                     return false;
-                }
-                if (projType == ImportProject::UNKNOWN) {
-                    printMessage("cppcheck: Failed to load project '" + projectFile + "'. The format is unknown.");
-                    return false;
-                }
             }
 
             // Report progress
