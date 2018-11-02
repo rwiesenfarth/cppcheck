@@ -169,9 +169,29 @@ bool CmdLineParser::loadGuiProject(const char exename[], const std::string& proj
             return false;
     }
 
+    // QStringList getIgnoredIncludeDirs() const
+    // (no CLI option so far)
+    // Limited to import projects
+    if (!importProject.empty()) {
+        std::vector<std::string> v;
+        for (auto qtPath : project.getIgnoredIncludeDirs()) {
+            v.push_back(qtPath.toStdString());
+        }
+        mSettings->project.ignoreIncludePaths(v);
+    }
+
     // bool getAnalyzeAllVsConfigs()
     // (none)
     printMessage("DIAG: getAnalyzeAllVsConfigs() not yet handled!");
+
+    // QString getVsConfig()
+    // (no CLI option so far)
+    // Limited to import projects
+    if (!importProject.empty()) {
+        auto vsConfig = project.getVsConfig().toStdString();
+        if (!vsConfig.empty())
+            mSettings->project.ignoreOtherConfigs(vsConfig);
+    }
 
     // QStringList getIncludeDirs() const
     // -I
