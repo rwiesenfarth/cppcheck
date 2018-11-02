@@ -31,6 +31,8 @@
 #include "timer.h"
 #include "utils.h"
 
+#include "../gui/projectfile.h"
+
 #include <algorithm>
 #include <cstdio>
 #include <cstdlib> // EXIT_FAILURE
@@ -113,6 +115,194 @@ void CmdLineParser::printMessage(const std::string &message)
 void CmdLineParser::printMessage(const char* message)
 {
     std::cout << message << std::endl;
+}
+
+bool CmdLineParser::loadImportProject(const char exename[], const std::string& projectFile)
+{
+    const ImportProject::Type projType = mSettings->project.import(projectFile);
+    if (projType == ImportProject::VS_SLN || projType == ImportProject::VS_VCXPROJ) {
+        if (!CppCheckExecutor::tryLoadLibrary(mSettings->library, exename, "windows.cfg")) {
+            // This shouldn't happen normally.
+            printMessage("cppcheck: Failed to load 'windows.cfg'. Your Cppcheck installation is broken. Please re-install.");
+            return false;
+        }
+    }
+    if (projType == ImportProject::MISSING) {
+        printMessage("cppcheck: Failed to open project '" + projectFile + "'.");
+        return false;
+    }
+    if (projType == ImportProject::UNKNOWN) {
+        printMessage("cppcheck: Failed to load project '" + projectFile + "'. The format is unknown.");
+        return false;
+    }
+    return true;
+}
+
+bool CmdLineParser::loadGuiProject(const char exename[], const std::string& projectFile, bool &def) {
+    ProjectFile project;
+
+    printMessage("diag: try loading '" + projectFile + "'.");
+    if (!project.read(QString::fromStdString(projectFile))) {
+        printMessage("cppcheck: Failed to load GUI project '" + projectFile + "'.");
+        return false;
+    }
+    printMessage("diag: successfully read GUI project");
+
+    // QString getRootPath()
+    // -rp / --relative-paths ?
+    printMessage("DIAG: getRootPath() not yet handled!");
+
+    // QString getBuildDir()
+    // --cppcheck-build-dir
+    auto buildDir = project.getBuildDir().toStdString();
+    if (!buildDir.empty()) {
+        mSettings->buildDir = Path::fromNativeSeparators(buildDir);
+        if (endsWith(mSettings->buildDir, '/'))
+            mSettings->buildDir.erase(mSettings->buildDir.size() - 1U);
+    }
+
+    // QString getImportProject()
+    // --project
+    auto importProject = project.getImportProject().toStdString();
+    if (!importProject.empty()) {
+        if (!loadImportProject(exename, importProject))
+            return false;
+    }
+
+    // bool getAnalyzeAllVsConfigs()
+    // (none)
+    printMessage("DIAG: getAnalyzeAllVsConfigs() not yet handled!");
+
+    // QStringList getIncludeDirs() const
+    // -I
+    for (auto qtPath : project.getIncludeDirs()) {
+        auto path = qtPath.toStdString();
+
+        path = Path::removeQuotationMarks(path);
+        path = Path::fromNativeSeparators(path);
+
+        // If path doesn't end with / or \, add it
+        if (!endsWith(path,'/'))
+            path += '/';
+
+        mSettings->includePaths.push_back(path);
+    }
+
+    // QStringList getDefines() const
+    // -D
+    for (auto qtDefine : project.getDefines()) {
+        auto define = qtDefine.toStdString();
+
+        // No "=", append a "=1"
+        if (define.find('=') == std::string::npos)
+            define += "=1";
+
+        if (!mSettings->userDefines.empty())
+            mSettings->userDefines += ";";
+        mSettings->userDefines += define;
+
+        def = true;
+    }
+
+    // QStringList getUndefines() const
+    // -U
+    for (auto qtUndefine : project.getUndefines()) {
+        auto undefine = qtUndefine.toStdString();
+
+        mSettings->userUndefs.insert(undefine);
+    }
+
+    // QStringList getCheckPaths()
+    // --file-list
+    for (auto qtPathName : project.getCheckPaths()) {
+        auto pathName = qtPathName.toStdString();
+
+        mPathNames.push_back(pathName);
+    }
+
+    // QStringList getExcludedPaths() const
+    // --config-exclude / --config-excludes-files
+    for (auto qtExcludePath : project.getExcludedPaths()) {
+        auto excludePath = qtExcludePath.toStdString();
+
+        excludePath = Path::fromNativeSeparators(excludePath);
+        mSettings->configExcludePaths.insert(excludePath);
+    }
+
+    // QStringList getLibraries() const
+    // --library
+    for (auto qtLibrary : project.getLibraries()) {
+        auto library = qtLibrary.toStdString();
+
+        if (!CppCheckExecutor::tryLoadLibrary(mSettings->library, exename, library.c_str()))
+           return false;
+    }
+
+    // QString getPlatform() const
+    // --platform
+    auto platform = project.getPlatform().toStdString();
+    if (!platform.empty()) {
+        if (!setPlatform(exename, platform))
+            return false;
+    }
+
+    // QList<Suppressions::Suppression> getSuppressions() const
+    // --suppress / --suppressions-list
+    for (auto suppression : project.getSuppressions()) {
+        const std::string errmsg(mSettings->nomsg.addSuppression(suppression));
+        if (!errmsg.empty()) {
+            printMessage(errmsg);
+            return false;
+        }
+    }
+
+    // QStringList getAddons() const
+    // unsupported ?
+    printMessage("DIAG: getAddons() not yet handled!");
+
+    // QStringList getAddonsAndTools() const
+    // unsupported ?
+    printMessage("DIAG: getAddonsAndTools() not yet handled!");
+
+    // bool getClangAnalyzer() const
+    // unsupported
+    printMessage("DIAG: getClangAnalyzer() not yet handled!");
+
+    // bool getClangTidy() const
+    // unsupported
+    printMessage("DIAG: getClangTidy() not yet handled!");
+
+    // QStringList getTags() const
+    // ?
+    printMessage("DIAG: getTags() not yet handled!");
+
+    return true;
+}
+
+bool CmdLineParser::setPlatform(const char exename[], const std::string & platformName)
+{
+    if (platformName == "win32A")
+        mSettings->platform(Settings::Win32A);
+    else if (platformName == "win32W")
+        mSettings->platform(Settings::Win32W);
+    else if (platformName == "win64")
+        mSettings->platform(Settings::Win64);
+    else if (platformName == "unix32")
+        mSettings->platform(Settings::Unix32);
+    else if (platformName == "unix64")
+        mSettings->platform(Settings::Unix64);
+    else if (platformName == "native")
+        mSettings->platform(Settings::Native);
+    else if (platformName == "unspecified")
+        mSettings->platform(Settings::Unspecified);
+    else if (!mSettings->loadPlatformFile(exename, platformName)) {
+        std::string message("cppcheck: error: unrecognized platform: \"");
+        message += platformName;
+        message += "\".";
+        printMessage(message);
+        return false;
+    }
+    return true;
 }
 
 bool CmdLineParser::parseFromArgs(int argc, const char* const argv[])
@@ -515,23 +705,14 @@ bool CmdLineParser::parseFromArgs(int argc, const char* const argv[])
 
             // --project
             else if (std::strncmp(argv[i], "--project=", 10) == 0) {
-                const std::string projectFile = argv[i]+10;
-                const ImportProject::Type projType = mSettings->project.import(projectFile);
-                if (projType == ImportProject::VS_SLN || projType == ImportProject::VS_VCXPROJ) {
-                    if (!CppCheckExecutor::tryLoadLibrary(mSettings->library, argv[0], "windows.cfg")) {
-                        // This shouldn't happen normally.
-                        printMessage("cppcheck: Failed to load 'windows.cfg'. Your Cppcheck installation is broken. Please re-install.");
-                        return false;
-                    }
-                }
-                if (projType == ImportProject::MISSING) {
-                    printMessage("cppcheck: Failed to open project '" + projectFile + "'.");
+                if (!loadImportProject(argv[0], argv[i]+10))
                     return false;
-                }
-                if (projType == ImportProject::UNKNOWN) {
-                    printMessage("cppcheck: Failed to load project '" + projectFile + "'. The format is unknown.");
+            }
+
+            // --guiproject
+            else if (std::strncmp(argv[i], "--guiproject=", 13) == 0) {
+                if (!loadGuiProject(argv[0], argv[i]+13, def))
                     return false;
-                }
             }
 
             // Report progress
@@ -749,29 +930,8 @@ bool CmdLineParser::parseFromArgs(int argc, const char* const argv[])
 
             // Specify platform
             else if (std::strncmp(argv[i], "--platform=", 11) == 0) {
-                const std::string platform(11+argv[i]);
-
-                if (platform == "win32A")
-                    mSettings->platform(Settings::Win32A);
-                else if (platform == "win32W")
-                    mSettings->platform(Settings::Win32W);
-                else if (platform == "win64")
-                    mSettings->platform(Settings::Win64);
-                else if (platform == "unix32")
-                    mSettings->platform(Settings::Unix32);
-                else if (platform == "unix64")
-                    mSettings->platform(Settings::Unix64);
-                else if (platform == "native")
-                    mSettings->platform(Settings::Native);
-                else if (platform == "unspecified")
-                    mSettings->platform(Settings::Unspecified);
-                else if (!mSettings->loadPlatformFile(argv[0], platform)) {
-                    std::string message("cppcheck: error: unrecognized platform: \"");
-                    message += platform;
-                    message += "\".";
-                    printMessage(message);
+                if (!setPlatform(argv[0], argv[i]+11))
                     return false;
-                }
             }
 
             // Set maximum number of #ifdef configurations to check

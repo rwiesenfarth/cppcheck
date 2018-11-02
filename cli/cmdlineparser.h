@@ -107,6 +107,21 @@ protected:
     static void printMessage(const char* message);
 
 private:
+    /**
+     * Load the import project into mSettings.
+     */
+    bool loadImportProject(const char exename[], const std::string &projectFile);
+
+    /**
+     * Load a project created using cppcheck-gui
+     */
+    bool loadGuiProject(const char exename[], const std::string &projectFile, bool &def);
+
+    /**
+     * Set the platform by name
+     */
+    bool setPlatform(const char exename[], const std::string &platformName);
+
     std::vector<std::string> mPathNames;
     std::vector<std::string> mIgnoredPaths;
     Settings *mSettings;
