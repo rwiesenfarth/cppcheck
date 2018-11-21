@@ -617,25 +617,25 @@ bool ProjectFile::write(const QString &filename)
 
     if (!mRootPath.isEmpty()) {
         auto root = xmlDoc.NewElement(RootPathName);
-        root->SetAttribute(RootPathNameAttrib, mRootPath.toStdString().c_str());
+        root->SetAttribute(RootPathNameAttrib, mRootPath.toUtf8().constData());
         project->InsertEndChild(root);
     }
 
     if (!mBuildDir.isEmpty()) {
         auto buildDir = xmlDoc.NewElement(BuildDirElementName);
-        buildDir->SetText(mBuildDir.toStdString().c_str());
+        buildDir->SetText(mBuildDir.toUtf8().constData());
         project->InsertEndChild(buildDir);
     }
 
     if (!mPlatform.isEmpty()) {
         auto platform = xmlDoc.NewElement(PlatformElementName);
-        platform->SetText(mPlatform.toStdString().c_str());
+        platform->SetText(mPlatform.toUtf8().constData());
         project->InsertEndChild(platform);
     }
 
     if (!mImportProject.isEmpty()) {
         auto importProject = xmlDoc.NewElement(ImportProjectElementName);
-        importProject->SetText(mImportProject.toStdString().c_str());
+        importProject->SetText(mImportProject.toUtf8().constData());
         project->InsertEndChild(importProject);
     }
 
@@ -648,7 +648,7 @@ bool ProjectFile::write(const QString &filename)
         project->InsertEndChild(includeDirList);
         for (auto incdir : mIncludeDirs) {
             auto includeDir = xmlDoc.NewElement(DirElementName);
-            includeDir->SetAttribute(DirNameAttrib, incdir.toStdString().c_str());
+            includeDir->SetAttribute(DirNameAttrib, incdir.toUtf8().constData());
             includeDirList->InsertEndChild(includeDir);
         }
     }
@@ -658,7 +658,7 @@ bool ProjectFile::write(const QString &filename)
         project->InsertEndChild(defineList);
         for (auto def : mDefines) {
             auto define = xmlDoc.NewElement(DefineName);
-            define->SetAttribute(DefineNameAttrib, def.toStdString().c_str());
+            define->SetAttribute(DefineNameAttrib, def.toUtf8().constData());
             defineList->InsertEndChild(define);
         }
     }
@@ -670,7 +670,7 @@ bool ProjectFile::write(const QString &filename)
         project->InsertEndChild(pathList);
         for (auto p : mPaths) {
             auto path = xmlDoc.NewElement(PathName);
-            path->SetAttribute(PathNameAttrib, p.toStdString().c_str());
+            path->SetAttribute(PathNameAttrib, p.toUtf8().constData());
             pathList->InsertEndChild(path);
         }
     }
@@ -680,7 +680,7 @@ bool ProjectFile::write(const QString &filename)
         project->InsertEndChild(excludeList);
         for (auto p : mExcludedPaths) {
             auto path = xmlDoc.NewElement(ExcludePathName);
-            path->SetAttribute(ExcludePathNameAttrib, p.toStdString().c_str());
+            path->SetAttribute(ExcludePathNameAttrib, p.toUtf8().constData());
             excludeList->InsertEndChild(path);
         }
     }
@@ -730,7 +730,7 @@ void ProjectFile::writeStringList(tinyxml2::XMLDocument &xmlDoc, tinyxml2::XMLEl
     parent.InsertEndChild(list);
     for (auto str : stringlist) {
         auto element = xmlDoc.NewElement(stringelementname);
-        element->SetText(str.toStdString().c_str());
+        element->SetText(str.toUtf8().constData());
         list->InsertEndChild(element);
     }
 }
