@@ -56,7 +56,7 @@
   </PropertyGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
     <ClCompile>
-      <AdditionalIncludeDirectories>.;.;..\lib;..\..\..\qt-5.6.2_TP-vs2015\include;..\..\..\qt-5.6.2_TP-vs2015\include\QtPrintSupport;..\..\..\qt-5.6.2_TP-vs2015\include\QtWidgets;..\..\..\qt-5.6.2_TP-vs2015\include\QtGui;..\..\..\qt-5.6.2_TP-vs2015\include\QtCore;temp\generated;temp\generated;..\..\..\qt-5.6.2_TP-vs2015\mkspecs\win32-msvc2015;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>.;..\lib;..\..\..\qt-5.6.2_TP-vs2015\include;..\..\..\qt-5.6.2_TP-vs2015\include\QtPrintSupport;..\..\..\qt-5.6.2_TP-vs2015\include\QtWidgets;..\..\..\qt-5.6.2_TP-vs2015\include\QtGui;..\..\..\qt-5.6.2_TP-vs2015\include\QtCore;temp\generated;..\..\..\qt-5.6.2_TP-vs2015\mkspecs\win32-msvc2015;..\externals;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <AdditionalOptions>-Zc:strictStrings -Zc:throwingNew -w34100 -w34189 -w44996 -w44456 -w44457 -w44458 %(AdditionalOptions)</AdditionalOptions>
       <AssemblerListingLocation>temp\generated\</AssemblerListingLocation>
       <BrowseInformation>false</BrowseInformation>

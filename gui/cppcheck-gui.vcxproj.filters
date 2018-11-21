@@ -227,9 +227,6 @@
     <ClInclude Include="printablereport.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <CustomBuild Include="projectfile.h">
-      <Filter>Header Files</Filter>
-    </CustomBuild>
     <CustomBuild Include="projectfiledialog.h">
       <Filter>Header Files</Filter>
     </CustomBuild>
@@ -556,5 +553,10 @@
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="cppcheck-gui.rc" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="projectfile.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
 </Project>
