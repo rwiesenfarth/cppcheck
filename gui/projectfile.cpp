@@ -21,6 +21,7 @@
 #include <QXmlStreamReader>
 #include <QXmlStreamWriter>
 #include <QFile>
+#include <QFileInfo>
 #include <QDir>
 #include "projectfile.h"
 #include "common.h"
@@ -604,145 +605,134 @@ bool ProjectFile::write(const QString &filename)
     if (!filename.isEmpty())
         mFilename = filename;
 
-    QFile file(mFilename);
-    if (!file.open(QIODevice::WriteOnly | QIODevice::Text))
-        return false;
+    tinyxml2::XMLDocument xmlDoc;
+    xmlDoc.SetBOM(true);
+    
+    auto declaration = xmlDoc.NewDeclaration();
+    xmlDoc.InsertFirstChild(declaration);
 
-    QXmlStreamWriter xmlWriter(&file);
-    xmlWriter.setAutoFormatting(true);
-    xmlWriter.writeStartDocument("1.0");
-    xmlWriter.writeStartElement(ProjectElementName);
-    xmlWriter.writeAttribute(ProjectVersionAttrib, ProjectFileVersion);
+    auto project = xmlDoc.NewElement(ProjectElementName);
+    project->SetAttribute(ProjectVersionAttrib, ProjectFileVersion);
+    xmlDoc.InsertEndChild(project);
 
     if (!mRootPath.isEmpty()) {
-        xmlWriter.writeStartElement(RootPathName);
-        xmlWriter.writeAttribute(RootPathNameAttrib, mRootPath);
-        xmlWriter.writeEndElement();
+        auto root = xmlDoc.NewElement(RootPathName);
+        root->SetAttribute(RootPathNameAttrib, mRootPath.toStdString().c_str());
+        project->InsertEndChild(root);
     }
 
     if (!mBuildDir.isEmpty()) {
-        xmlWriter.writeStartElement(BuildDirElementName);
-        xmlWriter.writeCharacters(mBuildDir);
-        xmlWriter.writeEndElement();
+        auto buildDir = xmlDoc.NewElement(BuildDirElementName);
+        buildDir->SetText(mBuildDir.toStdString().c_str());
+        project->InsertEndChild(buildDir);
     }
 
     if (!mPlatform.isEmpty()) {
-        xmlWriter.writeStartElement(PlatformElementName);
-        xmlWriter.writeCharacters(mPlatform);
-        xmlWriter.writeEndElement();
+        auto platform = xmlDoc.NewElement(PlatformElementName);
+        platform->SetText(mPlatform.toStdString().c_str());
+        project->InsertEndChild(platform);
     }
 
     if (!mImportProject.isEmpty()) {
-        xmlWriter.writeStartElement(ImportProjectElementName);
-        xmlWriter.writeCharacters(mImportProject);
-        xmlWriter.writeEndElement();
+        auto importProject = xmlDoc.NewElement(ImportProjectElementName);
+        importProject->SetText(mImportProject.toStdString().c_str());
+        project->InsertEndChild(importProject);
     }
 
-    xmlWriter.writeStartElement(AnalyzeAllVsConfigsElementName);
-    xmlWriter.writeCharacters(mAnalyzeAllVsConfigs ? "true" : "false");
-    xmlWriter.writeEndElement();
+    auto analyzeAllVsConfigs = xmlDoc.NewElement(AnalyzeAllVsConfigsElementName);
+    analyzeAllVsConfigs->SetText(mAnalyzeAllVsConfigs ? "true" : "false");
+    project->InsertEndChild(analyzeAllVsConfigs);
 
     if (!mIncludeDirs.isEmpty()) {
-        xmlWriter.writeStartElement(IncludeDirElementName);
-        foreach (QString incdir, mIncludeDirs) {
-            xmlWriter.writeStartElement(DirElementName);
-            xmlWriter.writeAttribute(DirNameAttrib, incdir);
-            xmlWriter.writeEndElement();
+        auto includeDirList = xmlDoc.NewElement(IncludeDirElementName);
+        project->InsertEndChild(includeDirList);
+        for (auto incdir : mIncludeDirs) {
+            auto includeDir = xmlDoc.NewElement(DirElementName);
+            includeDir->SetAttribute(DirNameAttrib, incdir.toStdString().c_str());
+            includeDirList->InsertEndChild(includeDir);
         }
-        xmlWriter.writeEndElement();
     }
 
     if (!mDefines.isEmpty()) {
-        xmlWriter.writeStartElement(DefinesElementName);
-        foreach (QString define, mDefines) {
-            xmlWriter.writeStartElement(DefineName);
-            xmlWriter.writeAttribute(DefineNameAttrib, define);
-            xmlWriter.writeEndElement();
+        auto defineList = xmlDoc.NewElement(DefinesElementName);
+        project->InsertEndChild(defineList);
+        for (auto def : mDefines) {
+            auto define = xmlDoc.NewElement(DefineName);
+            define->SetAttribute(DefineNameAttrib, def.toStdString().c_str());
+            defineList->InsertEndChild(define);
         }
-        xmlWriter.writeEndElement();
     }
 
-    writeStringList(xmlWriter,
-                    mUndefines,
-                    UndefinesElementName,
-                    UndefineName);
+    writeStringList(xmlDoc, *project, mUndefines, UndefinesElementName, UndefineName);
 
     if (!mPaths.isEmpty()) {
-        xmlWriter.writeStartElement(PathsElementName);
-        foreach (QString path, mPaths) {
-            xmlWriter.writeStartElement(PathName);
-            xmlWriter.writeAttribute(PathNameAttrib, path);
-            xmlWriter.writeEndElement();
+        auto pathList = xmlDoc.NewElement(PathsElementName);
+        project->InsertEndChild(pathList);
+        for (auto p : mPaths) {
+            auto path = xmlDoc.NewElement(PathName);
+            path->SetAttribute(PathNameAttrib, p.toStdString().c_str());
+            pathList->InsertEndChild(path);
         }
-        xmlWriter.writeEndElement();
     }
 
     if (!mExcludedPaths.isEmpty()) {
-        xmlWriter.writeStartElement(ExcludeElementName);
-        foreach (QString path, mExcludedPaths) {
-            xmlWriter.writeStartElement(ExcludePathName);
-            xmlWriter.writeAttribute(ExcludePathNameAttrib, path);
-            xmlWriter.writeEndElement();
+        auto excludeList = xmlDoc.NewElement(ExcludeElementName);
+        project->InsertEndChild(excludeList);
+        for (auto p : mExcludedPaths) {
+            auto path = xmlDoc.NewElement(ExcludePathName);
+            path->SetAttribute(ExcludePathNameAttrib, p.toStdString().c_str());
+            excludeList->InsertEndChild(path);
         }
-        xmlWriter.writeEndElement();
     }
 
-    writeStringList(xmlWriter,
-                    mLibraries,
-                    LibrariesElementName,
-                    LibraryElementName);
+    writeStringList(xmlDoc, *project, mLibraries, LibrariesElementName, LibraryElementName);
 
     if (!mSuppressions.isEmpty()) {
-        xmlWriter.writeStartElement(SuppressionsElementName);
-        foreach (const Suppressions::Suppression &suppression, mSuppressions) {
-            xmlWriter.writeStartElement(SuppressionElementName);
-            if (!suppression.fileName.empty())
-                xmlWriter.writeAttribute("fileName", QString::fromStdString(suppression.fileName));
-            if (suppression.lineNumber > 0)
-                xmlWriter.writeAttribute("lineNumber", QString::number(suppression.lineNumber));
-            if (!suppression.symbolName.empty())
-                xmlWriter.writeAttribute("symbolName", QString::fromStdString(suppression.symbolName));
-            if (!suppression.errorId.empty())
-                xmlWriter.writeCharacters(QString::fromStdString(suppression.errorId));
-            xmlWriter.writeEndElement();
+        auto suppressionList = xmlDoc.NewElement(SuppressionsElementName);
+        project->InsertEndChild(suppressionList);
+        for (const auto &sup : mSuppressions) {
+            auto suppression = xmlDoc.NewElement(SuppressionElementName);
+            suppressionList->InsertEndChild(suppression);
+            if (!sup.fileName.empty())
+                suppression->SetAttribute("fileName", sup.fileName.c_str());
+            if (sup.lineNumber > 0)
+                suppression->SetAttribute("lineNumber", std::to_string(sup.lineNumber).c_str());
+            if (!sup.symbolName.empty())
+                suppression->SetAttribute("symbolName", sup.symbolName.c_str());
+            if (!sup.errorId.empty())
+                suppression->SetText(sup.errorId.c_str());
         }
-        xmlWriter.writeEndElement();
     }
 
-    writeStringList(xmlWriter,
-                    mAddons,
-                    AddonsElementName,
-                    AddonElementName);
+    writeStringList(xmlDoc, *project, mAddons, AddonsElementName, AddonElementName);
 
-    QStringList tools;
-    if (mClangAnalyzer)
-        tools << CLANG_ANALYZER;
-    if (mClangTidy)
-        tools << CLANG_TIDY;
-    writeStringList(xmlWriter,
-                    tools,
-                    ToolsElementName,
-                    ToolElementName);
+    {
+        QStringList tools;
+        if (mClangAnalyzer)
+            tools << CLANG_ANALYZER;
+        if (mClangTidy)
+            tools << CLANG_TIDY;
+        writeStringList(xmlDoc, *project, tools, ToolsElementName, ToolElementName);
+    }
 
-    writeStringList(xmlWriter, mTags, TagsElementName, TagElementName);
+    writeStringList(xmlDoc, *project, mTags, TagsElementName, TagElementName);
 
-    xmlWriter.writeEndDocument();
-    file.close();
-    return true;
+    auto result = xmlDoc.SaveFile(mFilename.toStdString().c_str());
+    return result == tinyxml2::XML_SUCCESS;
 }
 
-void ProjectFile::writeStringList(QXmlStreamWriter &xmlWriter, const QStringList &stringlist, const char startelementname[], const char stringelementname[])
+void ProjectFile::writeStringList(tinyxml2::XMLDocument &xmlDoc, tinyxml2::XMLElement &parent, const QStringList &stringlist, const char startelementname[], const char stringelementname[])
 {
     if (stringlist.isEmpty())
         return;
 
-    xmlWriter.writeStartElement(startelementname);
-    foreach (QString str, stringlist) {
-        xmlWriter.writeStartElement(stringelementname);
-        xmlWriter.writeCharacters(str);
-        xmlWriter.writeEndElement();
+    auto list = xmlDoc.NewElement(startelementname);
+    parent.InsertEndChild(list);
+    for (auto str : stringlist) {
+        auto element = xmlDoc.NewElement(stringelementname);
+        element->SetText(str.toStdString().c_str());
+        list->InsertEndChild(element);
     }
-    xmlWriter.writeEndElement();
 }
 
 QStringList ProjectFile::fromNativeSeparators(const QStringList &paths)

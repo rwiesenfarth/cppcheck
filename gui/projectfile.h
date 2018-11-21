@@ -25,6 +25,7 @@
 #include <QXmlStreamReader>
 
 #include "suppressions.h"
+#include <tinyxml/tinyxml2.h>
 
 /// @addtogroup GUI
 /// @{
@@ -334,12 +335,13 @@ protected:
 
     /**
      * @brief Write string list
-     * @param xmlWriter xml writer
+     * @param xmlDoc xml document
+     * @param parent parent xml element
      * @param stringlist string list to write
      * @param startelementname name of start element
      * @param stringelementname name of each string element
      */
-    static void writeStringList(QXmlStreamWriter &xmlWriter, const QStringList &stringlist, const char startelementname[], const char stringelementname[]);
+    static void writeStringList(tinyxml2::XMLDocument &xmlDoc, tinyxml2::XMLElement &parent, const QStringList &stringlist, const char startelementname[], const char stringelementname[]);
 
 private:
 
