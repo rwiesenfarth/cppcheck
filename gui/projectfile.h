@@ -274,66 +274,6 @@ public:
 protected:
 
     /**
-     * @brief Read optional root path from XML.
-     * @param reader XML stream reader.
-     */
-    void readRootPath(QXmlStreamReader &reader);
-
-    void readBuildDir(QXmlStreamReader &reader);
-
-    /**
-     * @brief Read importproject from XML.
-     * @param reader XML stream reader.
-     */
-    void readImportProject(QXmlStreamReader &reader);
-
-    void readAnalyzeAllVsConfigs(QXmlStreamReader &reader);
-
-    /**
-     * @brief Read list of include directories from XML.
-     * @param reader XML stream reader.
-     */
-    void readIncludeDirs(QXmlStreamReader &reader);
-
-    /**
-     * @brief Read list of defines from XML.
-     * @param reader XML stream reader.
-     */
-    void readDefines(QXmlStreamReader &reader);
-
-    /**
-     * @brief Read list paths to check.
-     * @param reader XML stream reader.
-     */
-    void readCheckPaths(QXmlStreamReader &reader);
-
-    /**
-     * @brief Read lists of excluded paths.
-     * @param reader XML stream reader.
-     */
-    void readExcludes(QXmlStreamReader &reader);
-
-    /**
-     * @brief Read platform text.
-     * @param reader XML stream reader.
-     */
-    void readPlatform(QXmlStreamReader &reader);
-
-    /**
-     * @brief Read suppressions.
-     * @param reader XML stream reader.
-     */
-    void readSuppressions(QXmlStreamReader &reader);
-
-    /**
-      * @brief Read string list
-      * @param stringlist   destination string list
-      * @param reader       XML stream reader
-      * @param elementname  elementname for each string
-      */
-    void readStringList(QStringList &stringlist, QXmlStreamReader &reader, const char elementname[]);
-
-    /**
      * @brief Write string list
      * @param xmlDoc xml document
      * @param parent parent xml element

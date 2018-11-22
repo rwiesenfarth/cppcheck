@@ -56,6 +56,9 @@ static const char LibraryElementName[] = "library";
 static const char PlatformElementName[] = "platform";
 static const char SuppressionsElementName[] = "suppressions";
 static const char SuppressionElementName[] = "suppression";
+static const char SuppressionFileNameAttrib[] = "fileName";
+static const char SuppressionLineNumberAttrib[] = "lineNumber";
+static const char SuppressionSymbolNameAttrib[] = "symbolName";
 static const char AddonElementName[] = "addon";
 static const char AddonsElementName[] = "addons";
 static const char ToolElementName[] = "tool";
@@ -95,464 +98,138 @@ void ProjectFile::clear()
     mClangAnalyzer = mClangTidy = false;
 }
 
-bool ProjectFile::read(const QString &filename)
+bool ProjectFile::read( const QString &filename )
 {
-    if (!filename.isEmpty())
+    if(!filename.isEmpty())
         mFilename = filename;
 
-    QFile file(mFilename);
-    if (!file.open(QIODevice::ReadOnly | QIODevice::Text))
+    tinyxml2::XMLDocument xmlDoc;
+    auto result = xmlDoc.LoadFile(mFilename.toUtf8().constData());
+    if (result != tinyxml2::XML_SUCCESS)
         return false;
 
     clear();
 
-    QXmlStreamReader xmlReader(&file);
-    bool insideProject = false;
-    bool projectTagFound = false;
-    while (!xmlReader.atEnd()) {
-        switch (xmlReader.readNext()) {
-        case QXmlStreamReader::StartElement:
-            if (xmlReader.name() == ProjectElementName) {
-                insideProject = true;
-                projectTagFound = true;
-            }
-            // Read root path from inside project element
-            if (insideProject && xmlReader.name() == RootPathName)
-                readRootPath(xmlReader);
+    auto project = xmlDoc.FirstChildElement(ProjectElementName);
+    if (!project)
+        return false;
 
-            // Read root path from inside project element
-            if (insideProject && xmlReader.name() == BuildDirElementName)
-                readBuildDir(xmlReader);
+    auto root = project->FirstChildElement(RootPathName);
+    if (root)
+        mRootPath = QString::fromUtf8(root->Attribute(RootPathNameAttrib, ""));
 
-            // Find paths to check from inside project element
-            if (insideProject && xmlReader.name() == PathsElementName)
-                readCheckPaths(xmlReader);
+    auto buildDir = project->FirstChildElement(BuildDirElementName);
+    if (buildDir)
+        mBuildDir = QString::fromUtf8(buildDir->GetText());
 
-            if (insideProject && xmlReader.name() == ImportProjectElementName)
-                readImportProject(xmlReader);
+    auto platform = project->FirstChildElement(PlatformElementName);
+    if (platform)
+        mPlatform = QString::fromUtf8(platform->GetText());
 
-            if (insideProject && xmlReader.name() == AnalyzeAllVsConfigsElementName)
-                readAnalyzeAllVsConfigs(xmlReader);
+    auto importProject = project->FirstChildElement(ImportProjectElementName);
+    if (importProject)
+        mImportProject = QString::fromUtf8(importProject->GetText());
 
-            // Find include directory from inside project element
-            if (insideProject && xmlReader.name() == IncludeDirElementName)
-                readIncludeDirs(xmlReader);
+    auto analyzeAllVsConfigs = project->FirstChildElement(AnalyzeAllVsConfigsElementName);
+    if (analyzeAllVsConfigs)
+        mAnalyzeAllVsConfigs = analyzeAllVsConfigs->BoolText();
 
-            // Find preprocessor define from inside project element
-            if (insideProject && xmlReader.name() == DefinesElementName)
-                readDefines(xmlReader);
-
-            // Find preprocessor define from inside project element
-            if (insideProject && xmlReader.name() == UndefinesElementName)
-                readStringList(mUndefines, xmlReader, UndefineName);
-
-            // Find exclude list from inside project element
-            if (insideProject && xmlReader.name() == ExcludeElementName)
-                readExcludes(xmlReader);
-
-            // Find ignore list from inside project element
-            // These are read for compatibility
-            if (insideProject && xmlReader.name() == IgnoreElementName)
-                readExcludes(xmlReader);
-
-            // Find libraries list from inside project element
-            if (insideProject && xmlReader.name() == LibrariesElementName)
-                readStringList(mLibraries, xmlReader,LibraryElementName);
-
-            if (insideProject && xmlReader.name() == PlatformElementName)
-                readPlatform(xmlReader);
-
-            // Find suppressions list from inside project element
-            if (insideProject && xmlReader.name() == SuppressionsElementName)
-                readSuppressions(xmlReader);
-
-            // Addons
-            if (insideProject && xmlReader.name() == AddonsElementName)
-                readStringList(mAddons, xmlReader, AddonElementName);
-
-            // Tools
-            if (insideProject && xmlReader.name() == ToolsElementName) {
-                QStringList tools;
-                readStringList(tools, xmlReader, ToolElementName);
-                mClangAnalyzer = tools.contains(CLANG_ANALYZER);
-                mClangTidy = tools.contains(CLANG_TIDY);
-            }
-
-            if (insideProject && xmlReader.name() == TagsElementName)
-                readStringList(mTags, xmlReader, TagElementName);
-
-            break;
-
-        case QXmlStreamReader::EndElement:
-            if (xmlReader.name() == ProjectElementName)
-                insideProject = false;
-            break;
-
-        // Not handled
-        case QXmlStreamReader::NoToken:
-        case QXmlStreamReader::Invalid:
-        case QXmlStreamReader::StartDocument:
-        case QXmlStreamReader::EndDocument:
-        case QXmlStreamReader::Characters:
-        case QXmlStreamReader::Comment:
-        case QXmlStreamReader::DTD:
-        case QXmlStreamReader::EntityReference:
-        case QXmlStreamReader::ProcessingInstruction:
-            break;
+    auto includeDirList = project->FirstChildElement(IncludeDirElementName);
+    if (includeDirList) {
+        auto includeDir = includeDirList->FirstChildElement(DirElementName);
+        while (includeDir) {
+            mIncludeDirs << QString::fromUtf8(includeDir->Attribute(DirNameAttrib, ""));
+            includeDir = includeDir->NextSiblingElement(DirElementName);
         }
     }
 
-    file.close();
-    return projectTagFound;
-}
-
-void ProjectFile::readRootPath(QXmlStreamReader &reader)
-{
-    QXmlStreamAttributes attribs = reader.attributes();
-    QString name = attribs.value(QString(), RootPathNameAttrib).toString();
-    if (!name.isEmpty())
-        mRootPath = name;
-}
-
-void ProjectFile::readBuildDir(QXmlStreamReader &reader)
-{
-    mBuildDir.clear();
-    do {
-        const QXmlStreamReader::TokenType type = reader.readNext();
-        switch (type) {
-        case QXmlStreamReader::Characters:
-            mBuildDir = reader.text().toString();
-        case QXmlStreamReader::EndElement:
-            return;
-        // Not handled
-        case QXmlStreamReader::StartElement:
-        case QXmlStreamReader::NoToken:
-        case QXmlStreamReader::Invalid:
-        case QXmlStreamReader::StartDocument:
-        case QXmlStreamReader::EndDocument:
-        case QXmlStreamReader::Comment:
-        case QXmlStreamReader::DTD:
-        case QXmlStreamReader::EntityReference:
-        case QXmlStreamReader::ProcessingInstruction:
-            break;
+    auto defineList = project->FirstChildElement(DefinesElementName);
+    if (defineList) {
+        auto define = defineList->FirstChildElement(DefineName);
+        while (define) {
+            mDefines << QString::fromUtf8(define->Attribute(DefineNameAttrib, ""));
+            define = define->NextSiblingElement(DefineName);
         }
-    } while (1);
-}
+    }
 
-void ProjectFile::readImportProject(QXmlStreamReader &reader)
-{
-    mImportProject.clear();
-    do {
-        const QXmlStreamReader::TokenType type = reader.readNext();
-        switch (type) {
-        case QXmlStreamReader::Characters:
-            mImportProject = reader.text().toString();
-        case QXmlStreamReader::EndElement:
-            return;
-        // Not handled
-        case QXmlStreamReader::StartElement:
-        case QXmlStreamReader::NoToken:
-        case QXmlStreamReader::Invalid:
-        case QXmlStreamReader::StartDocument:
-        case QXmlStreamReader::EndDocument:
-        case QXmlStreamReader::Comment:
-        case QXmlStreamReader::DTD:
-        case QXmlStreamReader::EntityReference:
-        case QXmlStreamReader::ProcessingInstruction:
-            break;
+    auto undefineList = project->FirstChildElement(UndefinesElementName);
+    if (undefineList) {
+        auto undefine = undefineList->FirstChildElement(UndefineName);
+        while (undefine) {
+            mUndefines << QString::fromUtf8(undefine->GetText());
+            undefine = undefine->NextSiblingElement(UndefinesElementName);
         }
-    } while (1);
-}
+    }
 
-void ProjectFile::readAnalyzeAllVsConfigs(QXmlStreamReader &reader)
-{
-    do {
-        const QXmlStreamReader::TokenType type = reader.readNext();
-        switch (type) {
-        case QXmlStreamReader::Characters:
-            mAnalyzeAllVsConfigs = (reader.text().toString() == "true");
-        case QXmlStreamReader::EndElement:
-            return;
-        // Not handled
-        case QXmlStreamReader::StartElement:
-        case QXmlStreamReader::NoToken:
-        case QXmlStreamReader::Invalid:
-        case QXmlStreamReader::StartDocument:
-        case QXmlStreamReader::EndDocument:
-        case QXmlStreamReader::Comment:
-        case QXmlStreamReader::DTD:
-        case QXmlStreamReader::EntityReference:
-        case QXmlStreamReader::ProcessingInstruction:
-            break;
+    auto pathList = project->FirstChildElement(PathsElementName);
+    if (pathList) {
+        auto path = pathList->FirstChildElement(PathName);
+        while (path) {
+            mPaths << QString::fromUtf8(path->Attribute(PathNameAttrib, ""));
+            path = path->NextSiblingElement(PathName);
         }
-    } while (1);
-}
+    }
 
-void ProjectFile::readIncludeDirs(QXmlStreamReader &reader)
-{
-    QXmlStreamReader::TokenType type;
-    bool allRead = false;
-    do {
-        type = reader.readNext();
-        switch (type) {
-        case QXmlStreamReader::StartElement:
-
-            // Read dir-elements
-            if (reader.name().toString() == DirElementName) {
-                QXmlStreamAttributes attribs = reader.attributes();
-                QString name = attribs.value(QString(), DirNameAttrib).toString();
-                if (!name.isEmpty())
-                    mIncludeDirs << name;
-            }
-            break;
-
-        case QXmlStreamReader::EndElement:
-            if (reader.name().toString() == IncludeDirElementName)
-                allRead = true;
-            break;
-
-        // Not handled
-        case QXmlStreamReader::NoToken:
-        case QXmlStreamReader::Invalid:
-        case QXmlStreamReader::StartDocument:
-        case QXmlStreamReader::EndDocument:
-        case QXmlStreamReader::Characters:
-        case QXmlStreamReader::Comment:
-        case QXmlStreamReader::DTD:
-        case QXmlStreamReader::EntityReference:
-        case QXmlStreamReader::ProcessingInstruction:
-            break;
+    auto excludeList = project->FirstChildElement(ExcludeElementName);
+    if (excludeList) {
+        auto path = excludeList->FirstChildElement(ExcludePathName);
+        while (path) {
+            mExcludedPaths << QString::fromUtf8(path->Attribute(ExcludePathNameAttrib, ""));
+            path = path->NextSiblingElement(ExcludePathName);
         }
-    } while (!allRead);
-}
+    }
 
-void ProjectFile::readDefines(QXmlStreamReader &reader)
-{
-    QXmlStreamReader::TokenType type;
-    bool allRead = false;
-    do {
-        type = reader.readNext();
-        switch (type) {
-        case QXmlStreamReader::StartElement:
-            // Read define-elements
-            if (reader.name().toString() == DefineName) {
-                QXmlStreamAttributes attribs = reader.attributes();
-                QString name = attribs.value(QString(), DefineNameAttrib).toString();
-                if (!name.isEmpty())
-                    mDefines << name;
-            }
-            break;
-
-        case QXmlStreamReader::EndElement:
-            if (reader.name().toString() == DefinesElementName)
-                allRead = true;
-            break;
-
-        // Not handled
-        case QXmlStreamReader::NoToken:
-        case QXmlStreamReader::Invalid:
-        case QXmlStreamReader::StartDocument:
-        case QXmlStreamReader::EndDocument:
-        case QXmlStreamReader::Characters:
-        case QXmlStreamReader::Comment:
-        case QXmlStreamReader::DTD:
-        case QXmlStreamReader::EntityReference:
-        case QXmlStreamReader::ProcessingInstruction:
-            break;
+    auto libraryList = project->FirstChildElement(LibrariesElementName);
+    if (libraryList) {
+        auto library = libraryList->FirstChildElement(LibraryElementName);
+        while (library) {
+            mLibraries << QString::fromUtf8(library->GetText());
+            library = library->NextSiblingElement(LibraryElementName);
         }
-    } while (!allRead);
-}
+    }
 
-void ProjectFile::readCheckPaths(QXmlStreamReader &reader)
-{
-    QXmlStreamReader::TokenType type;
-    bool allRead = false;
-    do {
-        type = reader.readNext();
-        switch (type) {
-        case QXmlStreamReader::StartElement:
-
-            // Read dir-elements
-            if (reader.name().toString() == PathName) {
-                QXmlStreamAttributes attribs = reader.attributes();
-                QString name = attribs.value(QString(), PathNameAttrib).toString();
-                if (!name.isEmpty())
-                    mPaths << name;
-            }
-            break;
-
-        case QXmlStreamReader::EndElement:
-            if (reader.name().toString() == PathsElementName)
-                allRead = true;
-            break;
-
-        // Not handled
-        case QXmlStreamReader::NoToken:
-        case QXmlStreamReader::Invalid:
-        case QXmlStreamReader::StartDocument:
-        case QXmlStreamReader::EndDocument:
-        case QXmlStreamReader::Characters:
-        case QXmlStreamReader::Comment:
-        case QXmlStreamReader::DTD:
-        case QXmlStreamReader::EntityReference:
-        case QXmlStreamReader::ProcessingInstruction:
-            break;
+    auto suppressionList = project->FirstChildElement(SuppressionsElementName);
+    if (suppressionList) {
+        auto suppression = suppressionList->FirstChildElement(SuppressionElementName);
+        while (suppression) {
+            Suppressions::Suppression sup;
+            sup.errorId = suppression->GetText();
+            sup.fileName = suppression->Attribute(SuppressionFileNameAttrib);
+            sup.lineNumber = suppression->IntAttribute(SuppressionLineNumberAttrib, Suppressions::Suppression::NO_LINE);
+            sup.symbolName = suppression->Attribute(SuppressionSymbolNameAttrib);
+            mSuppressions << sup;
+            suppression = suppression->NextSiblingElement(SuppressionElementName);
         }
-    } while (!allRead);
-}
+    }
 
-void ProjectFile::readExcludes(QXmlStreamReader &reader)
-{
-    QXmlStreamReader::TokenType type;
-    bool allRead = false;
-    do {
-        type = reader.readNext();
-        switch (type) {
-        case QXmlStreamReader::StartElement:
-            // Read exclude-elements
-            if (reader.name().toString() == ExcludePathName) {
-                QXmlStreamAttributes attribs = reader.attributes();
-                QString name = attribs.value(QString(), ExcludePathNameAttrib).toString();
-                if (!name.isEmpty())
-                    mExcludedPaths << name;
-            }
-            // Read ignore-elements - deprecated but support reading them
-            else if (reader.name().toString() == IgnorePathName) {
-                QXmlStreamAttributes attribs = reader.attributes();
-                QString name = attribs.value(QString(), IgnorePathNameAttrib).toString();
-                if (!name.isEmpty())
-                    mExcludedPaths << name;
-            }
-            break;
-
-        case QXmlStreamReader::EndElement:
-            if (reader.name().toString() == IgnoreElementName)
-                allRead = true;
-            if (reader.name().toString() == ExcludeElementName)
-                allRead = true;
-            break;
-
-        // Not handled
-        case QXmlStreamReader::NoToken:
-        case QXmlStreamReader::Invalid:
-        case QXmlStreamReader::StartDocument:
-        case QXmlStreamReader::EndDocument:
-        case QXmlStreamReader::Characters:
-        case QXmlStreamReader::Comment:
-        case QXmlStreamReader::DTD:
-        case QXmlStreamReader::EntityReference:
-        case QXmlStreamReader::ProcessingInstruction:
-            break;
+    auto addonList = project->FirstChildElement(AddonsElementName);
+    if (addonList) {
+        auto addon = addonList->FirstChildElement(AddonElementName);
+        while (addon) {
+            mAddons << QString::fromUtf8(addon->GetText());
+            addon = addon->NextSiblingElement(AddonElementName);
         }
-    } while (!allRead);
-}
+    }
 
-void ProjectFile::readPlatform(QXmlStreamReader &reader)
-{
-    do {
-        const QXmlStreamReader::TokenType type = reader.readNext();
-        switch (type) {
-        case QXmlStreamReader::Characters:
-            mPlatform = reader.text().toString();
-        case QXmlStreamReader::EndElement:
-            return;
-        // Not handled
-        case QXmlStreamReader::StartElement:
-        case QXmlStreamReader::NoToken:
-        case QXmlStreamReader::Invalid:
-        case QXmlStreamReader::StartDocument:
-        case QXmlStreamReader::EndDocument:
-        case QXmlStreamReader::Comment:
-        case QXmlStreamReader::DTD:
-        case QXmlStreamReader::EntityReference:
-        case QXmlStreamReader::ProcessingInstruction:
-            break;
+    auto toolList = project->FirstChildElement(ToolsElementName);
+    if (toolList) {
+        auto tool = toolList->FirstChildElement(ToolElementName);
+        while (tool) {
+            auto toolName = tool->GetText();
+            mClangAnalyzer |= (toolName == CLANG_ANALYZER);
+            mClangTidy |= (toolName == CLANG_TIDY);
+            tool = tool->NextSiblingElement(ToolElementName);
         }
-    } while (1);
-}
+    }
 
-
-void ProjectFile::readSuppressions(QXmlStreamReader &reader)
-{
-    QXmlStreamReader::TokenType type;
-    do {
-        type = reader.readNext();
-        switch (type) {
-        case QXmlStreamReader::StartElement:
-            // Read library-elements
-            if (reader.name().toString() == SuppressionElementName) {
-                Suppressions::Suppression suppression;
-                if (reader.attributes().hasAttribute(QString(),"fileName"))
-                    suppression.fileName = reader.attributes().value(QString(),"fileName").toString().toStdString();
-                if (reader.attributes().hasAttribute(QString(),"lineNumber"))
-                    suppression.lineNumber = reader.attributes().value(QString(),"lineNumber").toInt();
-                if (reader.attributes().hasAttribute(QString(),"symbolName"))
-                    suppression.symbolName = reader.attributes().value(QString(),"symbolName").toString().toStdString();
-                type = reader.readNext();
-                if (type == QXmlStreamReader::Characters) {
-                    suppression.errorId = reader.text().toString().toStdString();
-                }
-                mSuppressions << suppression;
-            }
-            break;
-
-        case QXmlStreamReader::EndElement:
-            if (reader.name().toString() != SuppressionElementName)
-                return;
-            break;
-
-        // Not handled
-        case QXmlStreamReader::NoToken:
-        case QXmlStreamReader::Invalid:
-        case QXmlStreamReader::StartDocument:
-        case QXmlStreamReader::EndDocument:
-        case QXmlStreamReader::Characters:
-        case QXmlStreamReader::Comment:
-        case QXmlStreamReader::DTD:
-        case QXmlStreamReader::EntityReference:
-        case QXmlStreamReader::ProcessingInstruction:
-            break;
+    auto tagList = project->FirstChildElement(TagsElementName);
+    if (tagList) {
+        auto tag = tagList->FirstChildElement(TagElementName);
+        while (tag) {
+            mTags << QString::fromUtf8(tag->GetText());
+            tag = tag->NextSiblingElement(TagElementName);
         }
-    } while (true);
-}
-
-
-void ProjectFile::readStringList(QStringList &stringlist, QXmlStreamReader &reader, const char elementname[])
-{
-    QXmlStreamReader::TokenType type;
-    bool allRead = false;
-    do {
-        type = reader.readNext();
-        switch (type) {
-        case QXmlStreamReader::StartElement:
-            // Read library-elements
-            if (reader.name().toString() == elementname) {
-                type = reader.readNext();
-                if (type == QXmlStreamReader::Characters) {
-                    QString text = reader.text().toString();
-                    stringlist << text;
-                }
-            }
-            break;
-
-        case QXmlStreamReader::EndElement:
-            if (reader.name().toString() != elementname)
-                allRead = true;
-            break;
-
-        // Not handled
-        case QXmlStreamReader::NoToken:
-        case QXmlStreamReader::Invalid:
-        case QXmlStreamReader::StartDocument:
-        case QXmlStreamReader::EndDocument:
-        case QXmlStreamReader::Characters:
-        case QXmlStreamReader::Comment:
-        case QXmlStreamReader::DTD:
-        case QXmlStreamReader::EntityReference:
-        case QXmlStreamReader::ProcessingInstruction:
-            break;
-        }
-    } while (!allRead);
+    }
 }
 
 void ProjectFile::setIncludes(const QStringList &includes)
@@ -694,11 +371,11 @@ bool ProjectFile::write(const QString &filename)
             auto suppression = xmlDoc.NewElement(SuppressionElementName);
             suppressionList->InsertEndChild(suppression);
             if (!sup.fileName.empty())
-                suppression->SetAttribute("fileName", sup.fileName.c_str());
+                suppression->SetAttribute(SuppressionFileNameAttrib, sup.fileName.c_str());
             if (sup.lineNumber > 0)
-                suppression->SetAttribute("lineNumber", std::to_string(sup.lineNumber).c_str());
+                suppression->SetAttribute(SuppressionLineNumberAttrib, std::to_string(sup.lineNumber).c_str());
             if (!sup.symbolName.empty())
-                suppression->SetAttribute("symbolName", sup.symbolName.c_str());
+                suppression->SetAttribute(SuppressionSymbolNameAttrib, sup.symbolName.c_str());
             if (!sup.errorId.empty())
                 suppression->SetText(sup.errorId.c_str());
         }
@@ -717,7 +394,7 @@ bool ProjectFile::write(const QString &filename)
 
     writeStringList(xmlDoc, *project, mTags, TagsElementName, TagElementName);
 
-    auto result = xmlDoc.SaveFile(mFilename.toStdString().c_str());
+    auto result = xmlDoc.SaveFile(mFilename.toUtf8().constData());
     return result == tinyxml2::XML_SUCCESS;
 }
 
