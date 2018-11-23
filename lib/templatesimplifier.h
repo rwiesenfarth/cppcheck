@@ -26,6 +26,7 @@
 
 #include <ctime>
 #include <list>
+#include <map>
 #include <set>
 #include <string>
 #include <vector>
@@ -68,13 +69,14 @@ public:
      * Token and its full scopename
      */
     struct TokenAndName {
-        TokenAndName(Token *tok, const std::string &s, const std::string &n);
+        TokenAndName(Token *tok, const std::string &s, const std::string &n, const Token *nt);
         bool operator == (const TokenAndName & rhs) const {
-            return token == rhs.token && scope == rhs.scope && name == rhs.name;
+            return token == rhs.token && scope == rhs.scope && name == rhs.name && nameToken == rhs.nameToken;
         }
         Token *token;
         std::string scope;
         std::string name;
+        const Token *nameToken;
     };
 
     /**
@@ -123,11 +125,9 @@ public:
 private:
     /**
      * Get template declarations
-     * @param codeWithTemplates set to true if code has templates
-     * @param forward declaration or forward declaration
-     * @return list of template declarations
+     * @return true if code has templates.
      */
-    std::list<TokenAndName> getTemplateDeclarations(bool &codeWithTemplates, bool forward = false);
+    bool getTemplateDeclarations();
 
     /**
      * Get template instantiations
@@ -164,6 +164,21 @@ private:
         const std::list<const Token *> &specializations,
         const std::time_t maxtime,
         std::set<std::string> &expandedtemplates);
+
+    /**
+     * Simplify templates : add namespace to template name
+     * @param templateDeclaration template declaration
+     * @param tok place to insert namespace
+     */
+    void addNamespace(const TokenAndName &templateDeclaration, const Token *tok);
+
+    /**
+     * Simplify templates : check if namespace already present
+     * @param templateDeclaration template declaration
+     * @param tok place to start looking for namespace
+     * @return true if namespace already present
+     */
+    bool alreadyHasNamespace(const TokenAndName &templateDeclaration, const Token *tok) const;
 
     /**
      * Expand a template. Create "expanded" class/function at end of tokenlist.
@@ -249,6 +264,8 @@ private:
     ErrorLogger *mErrorLogger;
 
     std::list<TokenAndName> mTemplateDeclarations;
+    std::list<TokenAndName> mTemplateForwardDeclarations;
+    std::map<Token *, Token *> mTemplateForwardDeclarationsMap;
     std::list<TokenAndName> mTemplateInstantiations;
     std::list<TokenAndName> mInstantiatedTemplates;
     std::list<TokenAndName> mMemberFunctionsToDelete;

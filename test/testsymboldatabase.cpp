@@ -294,6 +294,7 @@ private:
         TEST_CASE(symboldatabase71);
         TEST_CASE(symboldatabase72); // #8600
         TEST_CASE(symboldatabase73); // #8603
+        TEST_CASE(symboldatabase74); // #8838 - final
 
         TEST_CASE(createSymbolDatabaseFindAllScopes1);
 
@@ -3091,18 +3092,106 @@ private:
     }
 
     void symboldatabase62() {
-        GET_SYMBOL_DB("struct A {\n"
-                      "public:\n"
-                      "    struct X { int a; };\n"
-                      "    void Foo(const std::vector<struct X> &includes);\n"
-                      "};\n"
-                      "void A::Foo(const std::vector<struct A::X> &includes) {\n"
-                      "    for (std::vector<struct A::X>::const_iterator it = includes.begin(); it != includes.end(); ++it) {\n"
-                      "        const struct A::X currentIncList = *it;\n"
-                      "    }\n"
-                      "}");
-        ASSERT(db != nullptr);
-        ASSERT(db && db->scopeList.size() == 5);
+        {
+            GET_SYMBOL_DB("struct A {\n"
+                          "public:\n"
+                          "    struct X { int a; };\n"
+                          "    void Foo(const std::vector<struct X> &includes);\n"
+                          "};\n"
+                          "void A::Foo(const std::vector<struct A::X> &includes) {\n"
+                          "    for (std::vector<struct A::X>::const_iterator it = includes.begin(); it != includes.end(); ++it) {\n"
+                          "        const struct A::X currentIncList = *it;\n"
+                          "    }\n"
+                          "}");
+            ASSERT(db != nullptr);
+            ASSERT(db && db->scopeList.size() == 5);
+            if (db && db->scopeList.size() == 5) {
+                const Scope *scope = db->findScopeByName("A");
+                ASSERT(scope != nullptr);
+                if (scope) {
+                    const Function *function = findFunctionByName("Foo", scope);
+                    ASSERT(function != nullptr);
+                    if (function) {
+                        ASSERT(function->hasBody());
+                    }
+                }
+            }
+        }
+        {
+            GET_SYMBOL_DB("class A {\n"
+                          "public:\n"
+                          "    class X { public: int a; };\n"
+                          "    void Foo(const std::vector<class X> &includes);\n"
+                          "};\n"
+                          "void A::Foo(const std::vector<class A::X> &includes) {\n"
+                          "    for (std::vector<class A::X>::const_iterator it = includes.begin(); it != includes.end(); ++it) {\n"
+                          "        const class A::X currentIncList = *it;\n"
+                          "    }\n"
+                          "}");
+            ASSERT(db != nullptr);
+            ASSERT(db && db->scopeList.size() == 5);
+            if (db && db->scopeList.size() == 5) {
+                const Scope *scope = db->findScopeByName("A");
+                ASSERT(scope != nullptr);
+                if (scope) {
+                    const Function *function = findFunctionByName("Foo", scope);
+                    ASSERT(function != nullptr);
+                    if (function) {
+                        ASSERT(function->hasBody());
+                    }
+                }
+            }
+        }
+        {
+            GET_SYMBOL_DB("struct A {\n"
+                          "public:\n"
+                          "    union X { int a; float b; };\n"
+                          "    void Foo(const std::vector<union X> &includes);\n"
+                          "};\n"
+                          "void A::Foo(const std::vector<union A::X> &includes) {\n"
+                          "    for (std::vector<union A::X>::const_iterator it = includes.begin(); it != includes.end(); ++it) {\n"
+                          "        const union A::X currentIncList = *it;\n"
+                          "    }\n"
+                          "}");
+            ASSERT(db != nullptr);
+            ASSERT(db && db->scopeList.size() == 5);
+            if (db && db->scopeList.size() == 5) {
+                const Scope *scope = db->findScopeByName("A");
+                ASSERT(scope != nullptr);
+                if (scope) {
+                    const Function *function = findFunctionByName("Foo", scope);
+                    ASSERT(function != nullptr);
+                    if (function) {
+                        ASSERT(function->hasBody());
+                    }
+                }
+            }
+        }
+        {
+            GET_SYMBOL_DB("struct A {\n"
+                          "public:\n"
+                          "    enum X { a, b };\n"
+                          "    void Foo(const std::vector<enum X> &includes);\n"
+                          "};\n"
+                          "void A::Foo(const std::vector<enum A::X> &includes) {\n"
+                          "    for (std::vector<enum A::X>::const_iterator it = includes.begin(); it != includes.end(); ++it) {\n"
+                          "        const enum A::X currentIncList = *it;\n"
+                          "    }\n"
+                          "}");
+            ASSERT(db != nullptr);
+            ASSERT(db && db->scopeList.size() == 5);
+            if (db && db->scopeList.size() == 5) {
+                const Scope *scope = db->findScopeByName("A");
+                ASSERT(scope != nullptr);
+                if (scope) {
+                    const Function *function = findFunctionByName("Foo", scope);
+                    ASSERT(function != nullptr);
+                    if (function) {
+                        ASSERT(function->hasBody());
+                    }
+                }
+            }
+        }
     }
 
     void symboldatabase63() {
@@ -4045,6 +4134,17 @@ private:
         ASSERT_EQUALS(3, f2->bodyStart->linenr());
         ASSERT_EQUALS(3, f2->bodyEnd->linenr());
         ASSERT_EQUALS(3, f2->function->token->linenr());
+    }
+
+    void symboldatabase74() { // #8838 - final
+        GET_SYMBOL_DB("class Base { virtual int f() const = 0; };\n"
+                      "class Derived : Base { virtual int f() const final { return 6; } };");
+
+        ASSERT_EQUALS(4, db->scopeList.size());
+        ASSERT_EQUALS(1, db->functionScopes.size());
+
+        const Scope *f1 = db->functionScopes[0];
+        ASSERT(f1->function->hasFinalSpecifier());
     }
 
     void createSymbolDatabaseFindAllScopes1() {

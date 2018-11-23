@@ -28,7 +28,30 @@
 #include "valueflow.h"
 
 #include <list>
-#include <functional>
+#include <stack>
+
+
+void visitAstNodes(const Token *ast, std::function<ChildrenToVisit(const Token *)> visitor)
+{
+    std::stack<const Token *> tokens;
+    tokens.push(ast);
+    while (!tokens.empty()) {
+        const Token *tok = tokens.top();
+        tokens.pop();
+        if (!tok)
+            continue;
+
+        ChildrenToVisit c = visitor(tok);
+
+        if (c == ChildrenToVisit::done)
+            break;
+        if (c == ChildrenToVisit::op1 || c == ChildrenToVisit::op1_and_op2)
+            tokens.push(tok->astOperand1());
+        if (c == ChildrenToVisit::op1 || c == ChildrenToVisit::op1_and_op2)
+            tokens.push(tok->astOperand2());
+    }
+}
+
 
 static bool astIsCharWithSign(const Token *tok, ValueType::Sign sign)
 {
@@ -71,6 +94,21 @@ bool astIsBool(const Token *tok)
     return tok && (tok->isBoolean() || (tok->valueType() && tok->valueType()->type == ValueType::Type::BOOL && !tok->valueType()->pointer));
 }
 
+bool astIsPointer(const Token *tok)
+{
+    return tok && tok->valueType() && tok->valueType()->pointer;
+}
+
+bool astIsIterator(const Token *tok)
+{
+    return tok && tok->valueType() && tok->valueType()->type == ValueType::Type::ITERATOR;
+}
+
+bool astIsContainer(const Token *tok)
+{
+    return tok && tok->valueType() && tok->valueType()->type == ValueType::Type::CONTAINER;
+}
+
 std::string astCanonicalType(const Token *expr)
 {
     if (!expr)
@@ -93,7 +131,7 @@ static bool match(const Token *tok, const std::string &rhs)
 {
     if (tok->str() == rhs)
         return true;
-    if (tok->isName() && !tok->varId() && tok->values().size() == 1U && tok->values().front().isKnown() && MathLib::toString(tok->values().front().intvalue) == rhs)
+    if (tok->isName() && !tok->varId() && tok->hasKnownIntValue() && MathLib::toString(tok->values().front().intvalue) == rhs)
         return true;
     return false;
 }
@@ -136,11 +174,31 @@ const Token * astIsVariableComparison(const Token *tok, const std::string &comp,
     return ret;
 }
 
+static bool hasToken(const Token * startTok, const Token * stopTok, const Token * tok)
+{
+    for (const Token * tok2 = startTok; tok2 != stopTok; tok2 = tok2->next()) {
+        if (tok2 == tok)
+            return true;
+    }
+    return false;
+}
+
 const Token * nextAfterAstRightmostLeaf(const Token * tok)
 {
-    if (!tok || !tok->astOperand1())
+    const Token * rightmostLeaf = tok;
+    if (!rightmostLeaf || !rightmostLeaf->astOperand1())
         return nullptr;
-    return tok->findExpressionStartEndTokens().second->next();
+    do {
+        if (rightmostLeaf->astOperand2())
+            rightmostLeaf = rightmostLeaf->astOperand2();
+        else
+            rightmostLeaf = rightmostLeaf->astOperand1();
+    } while (rightmostLeaf->astOperand1());
+    while (Token::Match(rightmostLeaf->next(), "]|)") && !hasToken(rightmostLeaf->next()->link(), rightmostLeaf->next(), tok))
+        rightmostLeaf = rightmostLeaf->next();
+    if (rightmostLeaf->str() == "{" && rightmostLeaf->link())
+        rightmostLeaf = rightmostLeaf->link();
+    return rightmostLeaf->next();
 }
 
 static const Token * getVariableInitExpression(const Variable * var)
@@ -158,7 +216,7 @@ static bool isInLoopCondition(const Token * tok)
 }
 
 /// If tok2 comes after tok1
-static bool precedes(const Token * tok1, const Token * tok2)
+bool precedes(const Token * tok1, const Token * tok2)
 {
     if (!tok1)
         return false;
@@ -347,8 +405,6 @@ bool isSameExpression(bool cpp, bool macro, const Token *tok1, const Token *tok2
         return false;
     if (pure && tok1->isName() && tok1->next()->str() == "(" && tok1->str() != "sizeof") {
         if (!tok1->function()) {
-            if (!Token::Match(tok1->previous(), ".|::") && !library.isFunctionConst(tok1) && !tok1->isAttributeConst() && !tok1->isAttributePure())
-                return false;
             if (Token::simpleMatch(tok1->previous(), ".")) {
                 const Token *lhs = tok1->previous();
                 while (Token::Match(lhs, "(|.|["))
@@ -357,6 +413,12 @@ bool isSameExpression(bool cpp, bool macro, const Token *tok1, const Token *tok2
                                         (lhs->valueType() && lhs->valueType()->constness > 0) ||
                                         (Token::Match(lhs, "%var% . %name% (") && library.isFunctionConst(lhs->tokAt(2)));
                 if (!lhsIsConst)
+                    return false;
+            } else {
+                const Token * ftok = tok1;
+                if (Token::simpleMatch(tok1->previous(), "::"))
+                    ftok = tok1->previous();
+                if (!library.isFunctionConst(ftok) && !ftok->isAttributeConst() && !ftok->isAttributePure())
                     return false;
             }
         } else {
@@ -939,18 +1001,16 @@ const Token *findLambdaEndToken(const Token *first)
 {
     if (!first || first->str() != "[")
         return nullptr;
-    const Token* tok = first->link();
-    if (Token::simpleMatch(tok, "] {"))
-        return tok->linkAt(1);
-    if (!Token::simpleMatch(tok, "] ("))
+    if (!Token::Match(first->link(), "] (|{"))
         return nullptr;
-    tok = tok->linkAt(1)->next();
-    if (tok && tok->str() == "constexpr")
-        tok = tok->next();
-    if (tok && tok->str() == "mutable")
-        tok = tok->next();
-    if (tok && tok->str() == "{")
-        return tok->link();
+    if (first->astOperand1() != first->link()->next())
+        return nullptr;
+    const Token * tok = first;
+
+    if (tok->astOperand1() && tok->astOperand1()->str() == "(")
+        tok = tok->astOperand1();
+    if (tok->astOperand1() && tok->astOperand1()->str() == "{")
+        return tok->astOperand1()->link();
     return nullptr;
 }
 

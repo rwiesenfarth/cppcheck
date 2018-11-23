@@ -19,6 +19,7 @@
 
 //---------------------------------------------------------------------------
 #include "checkother.h"
+#include "checkuninitvar.h" // CheckUninitVar::isVariableUsage
 
 #include "astutils.h"
 #include "errorlogger.h"
@@ -472,6 +473,7 @@ static bool checkExceptionHandling(const Token* tok)
 
 void CheckOther::checkRedundantAssignment()
 {
+    // TODO: This function should be rewritten, it's far too complex.
     const bool printPerformance = mSettings->isEnabled(Settings::PERFORMANCE);
     const bool printStyle = mSettings->isEnabled(Settings::STYLE);
     const bool printWarning = mSettings->isEnabled(Settings::WARNING);
@@ -592,35 +594,34 @@ void CheckOther::checkRedundantAssignment()
                         bool error = oldeq && eq->astOperand1() && isSameExpression(mTokenizer->isCPP(), true, eq->astOperand1(), oldeq->astOperand1(), mSettings->library, true, false);
 
                         // Ensure that variable is not used on right side
-                        std::stack<const Token *> tokens;
-                        tokens.push(eq->astOperand2());
-                        while (!tokens.empty()) {
-                            const Token *rhs = tokens.top();
-                            tokens.pop();
-                            if (!rhs)
-                                continue;
-                            tokens.push(rhs->astOperand1());
-                            tokens.push(rhs->astOperand2());
+                        visitAstNodes(eq->astOperand2(),
+                        [&](const Token *rhs) {
                             if (rhs->varId() == tok->varId()) {
                                 error = false;
-                                break;
+                                return ChildrenToVisit::done;
                             }
+
                             if (Token::Match(rhs->previous(), "%name% (") && nonLocalVolatile(tok->variable())) { // Called function might use the variable
                                 const Function* const func = rhs->function();
                                 const Variable* const var = tok->variable();
                                 if (!var || var->isGlobal() || var->isReference() || ((!func || func->nestedIn) && rhs->strAt(-1) != ".")) {// Global variable, or member function
                                     error = false;
-                                    break;
+                                    return ChildrenToVisit::done;
                                 }
                             }
-                        }
+
+                            return ChildrenToVisit::op1_and_op2;
+                        });
 
                         if (error) {
                             if (printWarning && scope.type == Scope::eSwitch && Token::findmatch(it->second, "default|case", tok))
                                 redundantAssignmentInSwitchError(it->second, tok, eq->astOperand1()->expressionString());
                             else if (printStyle) {
-                                // c++, unknown type => assignment might have additional side effects
-                                const bool possibleSideEffects(mTokenizer->isCPP() && !tok->valueType());
+                                // c++ and (unknown type or overloaded assignment operator) => assignment might have additional side effects
+                                const bool possibleSideEffects = mTokenizer->isCPP() &&
+                                                                 (!tok->valueType() ||
+                                                                  (tok->valueType()->typeScope &&
+                                                                   tok->valueType()->typeScope->functionMap.count("operator=")));
 
                                 // TODO nonlocal variables are not tracked entirely.
                                 const bool nonlocal = it->second->variable() && nonLocalVolatile(it->second->variable());
@@ -1015,6 +1016,8 @@ void CheckOther::checkUnreachableCode()
             else if (Token::Match(tok, "break|continue ;"))
                 secondBreak = tok->tokAt(2);
             else if (Token::Match(tok, "[;{}:] return|throw")) {
+                if (Token::simpleMatch(tok->astParent(), "?"))
+                    continue;
                 tok = tok->next(); // tok should point to return or throw
                 for (const Token *tok2 = tok->next(); tok2; tok2 = tok2->next()) {
                     if (tok2->str() == "(" || tok2->str() == "{")
@@ -1609,9 +1612,8 @@ void CheckOther::checkIncompleteStatement()
             tok = tok->link();
 
         // C++11 struct/array/etc initialization in initializer list
-        else if (Token::Match(tok->previous(), "%name%|] {") && !Token::findsimplematch(tok,";",tok->link()))
+        else if (Token::Match(tok->previous(), "%var%|] {"))
             tok = tok->link();
-
 
         if (!Token::Match(tok, "[;{}] %str%|%num%"))
             continue;
@@ -2769,6 +2771,7 @@ void CheckOther::checkAccessOfMovedVariable()
 {
     if (!mTokenizer->isCPP() || mSettings->standards.cpp < Standards::CPP11 || !mSettings->isEnabled(Settings::WARNING))
         return;
+    CheckUninitVar checkUninitVar(mTokenizer, mSettings, mErrorLogger);
     const bool reportInconclusive = mSettings->inconclusive;
     const SymbolDatabase *symbolDatabase = mTokenizer->getSymbolDatabase();
     for (const Scope * scope : symbolDatabase->functionScopes) {
@@ -2794,7 +2797,7 @@ void CheckOther::checkAccessOfMovedVariable()
                     inconclusive = true;
             } else {
                 const bool isVariableChanged = isVariableChangedByFunctionCall(tok, mSettings, &inconclusive);
-                accessOfMoved = !isVariableChanged;
+                accessOfMoved = !isVariableChanged && checkUninitVar.isVariableUsage(tok, false, CheckUninitVar::NO_ALLOC);
                 if (inconclusive) {
                     accessOfMoved = !isMovedParameterAllowedForInconclusiveFunction(tok);
                     if (accessOfMoved)
@@ -2999,16 +3002,18 @@ void CheckOther::checkShadowVariables()
                 continue;
             if (scope.type == Scope::eFunction && scope.className == var.name())
                 continue;
-            shadowVariablesError(var.nameToken(), shadowed);
+            shadowError(var.nameToken(), shadowed, shadowed->varId() != 0);
         }
     }
 }
 
-void CheckOther::shadowVariablesError(const Token *var, const Token *shadowed)
+void CheckOther::shadowError(const Token *var, const Token *shadowed, bool shadowVar)
 {
     ErrorPath errorPath;
     errorPath.push_back(ErrorPathItem(shadowed, "Shadowed declaration"));
     errorPath.push_back(ErrorPathItem(var, "Shadow variable"));
-    const std::string &varname = var ? var->str() : "var";
-    reportError(errorPath, Severity::style, "shadowLocal", "$symbol:" + varname + "\nLocal variable $symbol shadows outer symbol", CWE398, false);
+    const std::string &varname = var ? var->str() : (shadowVar ? "var" : "f");
+    const char *id = shadowVar ? "shadowVar" : "shadowFunction";
+    std::string message = "$symbol:" + varname + "\nLocal variable $symbol shadows outer " + (shadowVar ? "variable" : "function");
+    reportError(errorPath, Severity::style, id, message, CWE398, false);
 }

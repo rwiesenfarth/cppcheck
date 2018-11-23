@@ -605,6 +605,10 @@ public:
 
     void setValueType(const ValueType &valueType);
 
+    AccessControl accessControl() const {
+        return mAccess;
+    }
+
 private:
     // only symbol database can change the type
     friend class SymbolDatabase;
@@ -953,6 +957,19 @@ public:
                 return &enumeratorList[i];
         }
         return nullptr;
+    }
+
+    bool isNestedIn(const Scope * outer) const {
+        if (!outer)
+            return false;
+        if (outer == this)
+            return true;
+        const Scope * parent = nestedIn;
+        while (outer != parent && parent)
+            parent = parent->nestedIn;
+        if (parent && parent == outer)
+            return true;
+        return false;
     }
 
     bool isClassOrStruct() const {

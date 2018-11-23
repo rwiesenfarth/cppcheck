@@ -593,7 +593,7 @@ void SymbolDatabase::createSymbolDatabaseFindAllScopes()
                 else if (declEnd && declEnd->str() == ";") {
                     bool newFunc = true; // Is this function already in the database?
                     for (std::multimap<std::string, const Function *>::const_iterator i = scope->functionMap.find(tok->str()); i != scope->functionMap.end() && i->first == tok->str(); ++i) {
-                        if (Function::argsMatch(scope, i->second->argDef->next(), argStart->next(), emptyString, 0)) {
+                        if (Function::argsMatch(scope, i->second->argDef, argStart, emptyString, 0)) {
                             newFunc = false;
                             break;
                         }
@@ -1231,7 +1231,7 @@ void SymbolDatabase::createSymbolDatabaseEnums()
                 ValueFlow::valueFlowConstantFoldAST(rhs, mSettings);
 
                 // get constant folded value:
-                if (rhs && rhs->values().size() == 1U && rhs->values().front().isKnown()) {
+                if (rhs && rhs->hasKnownIntValue()) {
                     enumerator.value = rhs->values().front().intvalue;
                     enumerator.value_known = true;
                     value = enumerator.value + 1;
@@ -1334,7 +1334,7 @@ void SymbolDatabase::createSymbolDatabaseUnknownArrayDimensions()
                         ValueFlow::valueFlowConstantFoldAST(rhs, mSettings);
 
                         // get constant folded value:
-                        if (rhs && rhs->values().size() == 1U && rhs->values().front().isKnown()) {
+                        if (rhs && rhs->hasKnownIntValue()) {
                             dimension.num = rhs->values().front().intvalue;
                             dimension.known = true;
                         }
@@ -1856,23 +1856,25 @@ bool Function::argsMatch(const Scope *scope, const Token *first, const Token *se
     if (!isCPP) // C does not support overloads
         return true;
 
-    // skip "struct"
-    if (first->str() == "struct" || first->str() == "enum")
-        first = first->next();
-    if (second->str() == "struct" || second->str() == "enum")
-        second = second->next();
-
-    // skip const on type passed by value
-    if (Token::Match(first, "const %type% %name%|,|)"))
-        first = first->next();
-    if (Token::Match(second, "const %type% %name%|,|)"))
-        second = second->next();
-
     unsigned int arg_path_length = path_length;
 
     while (first->str() == second->str() &&
            first->isLong() == second->isLong() &&
            first->isUnsigned() == second->isUnsigned()) {
+
+        // skip optional type information
+        if (Token::Match(first->next(), "struct|enum|union|class"))
+            first = first->next();
+        if (Token::Match(second->next(), "struct|enum|union|class"))
+            second = second->next();
+
+        // skip const on type passed by value
+        if (Token::Match(first->next(), "const %type% %name%|,|)") &&
+            !Token::Match(first->next(), "const %type% %name%| ["))
+            first = first->next();
+        if (Token::Match(second->next(), "const %type% %name%|,|)") &&
+            !Token::Match(second->next(), "const %type% %name%| ["))
+            second = second->next();
 
         // at end of argument list
         if (first->str() == ")") {
@@ -1991,7 +1993,7 @@ bool Function::argsMatch(const Scope *scope, const Token *first, const Token *se
             }
 
             // remove class name
-            else if (arg_path_length > 2) {
+            else if (arg_path_length > 2 && first->strAt(1) != second->strAt(1)) {
                 std::string short_path = path;
                 unsigned int short_path_length = arg_path_length;
 
@@ -2028,20 +2030,6 @@ bool Function::argsMatch(const Scope *scope, const Token *first, const Token *se
         // reset path length
         if (first->str() == "," || second->str() == ",")
             arg_path_length = path_length;
-
-        // skip "struct"
-        if (first->str() == "struct" || first->str() == "enum")
-            first = first->next();
-        if (second->str() == "struct" || second->str() == "enum")
-            second = second->next();
-
-        // skip const on type passed by value
-        if (Token::Match(first, "const %type% %name%|,|)") &&
-            !Token::Match(first, "const %type% %name%| ["))
-            first = first->next();
-        if (Token::Match(second, "const %type% %name%|,|)") &&
-            !Token::Match(second, "const %type% %name%| ["))
-            second = second->next();
     }
 
     return false;
@@ -2063,7 +2051,7 @@ Function* SymbolDatabase::addGlobalFunction(Scope*& scope, const Token*& tok, co
         const Function *f = i->second;
         if (f->hasBody())
             continue;
-        if (Function::argsMatch(scope, f->argDef->next(), argStart->next(), emptyString, 0)) {
+        if (Function::argsMatch(scope, f->argDef, argStart, emptyString, 0)) {
             function = const_cast<Function *>(i->second);
             break;
         }
@@ -2628,16 +2616,7 @@ void SymbolDatabase::printVariable(const Variable *var, const char *indent) cons
         }
     }
     std::cout << indent << "mIndex: " << var->index() << std::endl;
-    std::cout << indent << "mAccess: " <<
-              (var->isPublic() ? "Public" :
-               var->isProtected() ? "Protected" :
-               var->isPrivate() ? "Private" :
-               var->isGlobal() ? "Global" :
-               var->isNamespace() ? "Namespace" :
-               var->isArgument() ? "Argument" :
-               var->isLocal() ? "Local" :
-               var->isThrow() ? "Throw" :
-               "Unknown")  << std::endl;
+    std::cout << indent << "mAccess: " << accessControlToString(var->accessControl()) << std::endl;
     std::cout << indent << "mFlags: " << std::endl;
     std::cout << indent << "    isMutable: " << var->isMutable() << std::endl;
     std::cout << indent << "    isStatic: " << var->isStatic() << std::endl;
@@ -2704,10 +2683,7 @@ void SymbolDatabase::printOut(const char *title) const
                                               func->type == Function::eDestructor ? "Destructor" :
                                               func->type == Function::eFunction ? "Function" :
                                               "Unknown") << std::endl;
-            std::cout << "        access: " << (func->access == Public ? "Public" :
-                                                func->access == Protected ? "Protected" :
-                                                func->access == Private ? "Private" :
-                                                "Unknown")  << std::endl;
+            std::cout << "        access: " << accessControlToString(func->access) << std::endl;
             std::cout << "        hasBody: " << func->hasBody() << std::endl;
             std::cout << "        isInline: " << func->isInline() << std::endl;
             std::cout << "        isConst: " << func->isConst() << std::endl;
@@ -3309,7 +3285,6 @@ Scope::Scope(const SymbolDatabase *check_, const Token *classDef_, const Scope *
     // skip over qualification if present
     nameTok = skipScopeIdentifiers(nameTok);
     if (nameTok && ((type == Scope::eEnum && Token::Match(nameTok, ":|{")) || nameTok->str() != "{")) // anonymous and unnamed structs/unions don't have a name
-
         className = nameTok->str();
 }
 
@@ -4747,7 +4722,7 @@ Function * SymbolDatabase::findFunctionInScope(const Token *func, const Scope *n
     for (std::multimap<std::string, const Function *>::const_iterator it = ns->functionMap.find(func->str());
          it != ns->functionMap.end() && it->first == func->str(); ++it) {
 
-        if (Function::argsMatch(ns, it->second->argDef->next(), func->tokAt(2), path, path_length) &&
+        if (Function::argsMatch(ns, it->second->argDef, func->next(), path, path_length) &&
             it->second->isDestructor() == destructor) {
             function = it->second;
             break;

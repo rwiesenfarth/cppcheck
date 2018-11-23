@@ -1448,9 +1448,8 @@ private:
             const char code[] = "typedef char (* type1)[10];\n"
                                 "LOCAL(type1) foo() { }";
 
-            // this is invalid C so just make sure it doesn't generate an internal error
-            checkSimplifyTypedef(code);
-            ASSERT_EQUALS("", errout.str());
+            // this is invalid C, assert that an "unknown macro" warning is written
+            ASSERT_THROW(checkSimplifyTypedef(code), InternalError);
         }
     }
 
@@ -1605,7 +1604,7 @@ private:
 
         // The expected tokens..
         const char expected2[] = "void f ( ) { char a [ 256 ] ; a = { 0 } ; char b [ 256 ] ; b = { 0 } ; }";
-        ASSERT_EQUALS(expected2, tok(code2, false));
+        ASSERT_EQUALS(expected2, tok(code2, false, Settings::Native, false));
         ASSERT_EQUALS("", errout.str());
 
         const char code3[] = "typedef char TString[256];\n"
@@ -1616,7 +1615,7 @@ private:
 
         // The expected tokens..
         const char expected3[] = "void f ( ) { char a [ 256 ] ; a = \"\" ; char b [ 256 ] ; b = \"\" ; }";
-        ASSERT_EQUALS(expected3, tok(code3, false));
+        ASSERT_EQUALS(expected3, tok(code3, false, Settings::Native, false));
         ASSERT_EQUALS("", errout.str());
 
         const char code4[] = "typedef char TString[256];\n"
@@ -1627,7 +1626,7 @@ private:
 
         // The expected tokens..
         const char expected4[] = "void f ( ) { char a [ 256 ] ; a = \"1234\" ; char b [ 256 ] ; b = \"5678\" ; }";
-        ASSERT_EQUALS(expected4, tok(code4, false));
+        ASSERT_EQUALS(expected4, tok(code4, false, Settings::Native, false));
         ASSERT_EQUALS("", errout.str());
     }
 
@@ -1864,8 +1863,7 @@ private:
     void simplifyTypedef81() { // ticket #2603 segmentation fault
         ASSERT_THROW(checkSimplifyTypedef("typedef\n"), InternalError);
 
-        checkSimplifyTypedef("typedef constexpr\n");
-        ASSERT_EQUALS("", errout.str());
+        ASSERT_THROW(checkSimplifyTypedef("typedef constexpr\n"), InternalError);
     }
 
     void simplifyTypedef82() { // ticket #2403

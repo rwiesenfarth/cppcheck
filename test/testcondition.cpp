@@ -1656,6 +1656,12 @@ private:
               "  }\n"
               "}");
         ASSERT_EQUALS("", errout.str());
+
+        check("int * f(int * x, int * y) {\n"
+              "    if(!x) return x;\n"
+              "    return y;\n"
+              "}\n");
+        ASSERT_EQUALS("", errout.str());
     }
 
     void oppositeInnerConditionClass() {
@@ -1901,8 +1907,7 @@ private:
 
     void oppositeInnerCondition3() {
         check("void f3(char c) { if(c=='x') if(c=='y') {}} ");
-        ASSERT_EQUALS("[test.cpp:1] -> [test.cpp:1]: (warning) Opposite inner 'if' condition leads to a dead code block.\n"
-                      "[test.cpp:1] -> [test.cpp:1]: (style) Condition 'c=='y'' is always false\n", errout.str());
+        ASSERT_EQUALS("[test.cpp:1] -> [test.cpp:1]: (warning) Opposite inner 'if' condition leads to a dead code block.\n", errout.str());
 
         check("void f4(char *p) { if(*p=='x') if(*p=='y') {}} ");
         ASSERT_EQUALS("[test.cpp:1] -> [test.cpp:1]: (warning) Opposite inner 'if' condition leads to a dead code block.\n", errout.str());
@@ -1920,8 +1925,7 @@ private:
         ASSERT_EQUALS("[test.cpp:1] -> [test.cpp:1]: (warning) Opposite inner 'if' condition leads to a dead code block.\n", errout.str());
 
         check("void f8(int i) { if(i==4) if(i==2) {}} ");
-        ASSERT_EQUALS("[test.cpp:1] -> [test.cpp:1]: (warning) Opposite inner 'if' condition leads to a dead code block.\n"
-                      "[test.cpp:1] -> [test.cpp:1]: (style) Condition 'i==2' is always false\n", errout.str());
+        ASSERT_EQUALS("[test.cpp:1] -> [test.cpp:1]: (warning) Opposite inner 'if' condition leads to a dead code block.\n", errout.str());
 
         check("void f9(int *p) { if (*p==4) if(*p==2) {}} ");
         ASSERT_EQUALS("[test.cpp:1] -> [test.cpp:1]: (warning) Opposite inner 'if' condition leads to a dead code block.\n", errout.str());
@@ -1953,8 +1957,7 @@ private:
         ASSERT_EQUALS("", errout.str());
 
         check("void f(int x) { if (x == 1) if (x != 1) {} }");
-        ASSERT_EQUALS("[test.cpp:1] -> [test.cpp:1]: (warning) Opposite inner 'if' condition leads to a dead code block.\n"
-                      "[test.cpp:1] -> [test.cpp:1]: (style) Condition 'x!=1' is always false\n", errout.str());
+        ASSERT_EQUALS("[test.cpp:1] -> [test.cpp:1]: (warning) Opposite inner 'if' condition leads to a dead code block.\n", errout.str());
     }
 
     void oppositeInnerConditionAnd() {
@@ -2069,15 +2072,27 @@ private:
               "}\n");
         ASSERT_EQUALS("[test.cpp:2] -> [test.cpp:3]: (warning) Identical inner 'if' condition is always true.\n", errout.str());
 
-        check("bool f(bool a) {\n"
-              "    if(a) { return a; }\n"
+        check("bool f(int a, int b) {\n"
+              "    if(a == b) { return a == b; }\n"
               "    return false;\n"
               "}\n");
         ASSERT_EQUALS("[test.cpp:2] -> [test.cpp:2]: (warning) Identical inner 'return' condition is always true.\n", errout.str());
 
+        check("bool f(bool a) {\n"
+              "    if(a) { return a; }\n"
+              "    return false;\n"
+              "}\n");
+        ASSERT_EQUALS("", errout.str());
+
         check("int* f(int* a, int * b) {\n"
               "    if(a) { return a; }\n"
               "    return b;\n"
+              "}\n");
+        ASSERT_EQUALS("", errout.str());
+
+        check("int* f(std::shared_ptr<int> a, std::shared_ptr<int> b) {\n"
+              "    if(a.get()) { return a.get(); }\n"
+              "    return b.get();\n"
               "}\n");
         ASSERT_EQUALS("", errout.str());
 
@@ -2145,7 +2160,7 @@ private:
               "  X(do);\n"
               "  if (x > 100) {}\n"
               "}");
-        ASSERT_EQUALS("", errout.str());
+        ASSERT_EQUALS("[test.cpp:2] -> [test.cpp:4]: (style) Condition 'x>100' is always false\n", errout.str());
 
         check("void f(const int *i) {\n"
               "  if (!i) return;\n"
@@ -2493,7 +2508,7 @@ private:
               "  if(x == 0) { x++; return x == 0; } \n"
               "  return false;\n"
               "}");
-        TODO_ASSERT_EQUALS("[test.cpp:2] -> [test.cpp:2]: (style) Condition 'x==0' is always false\n", "", errout.str());
+        ASSERT_EQUALS("[test.cpp:2] -> [test.cpp:2]: (style) Condition 'x==0' is always false\n", errout.str());
 
         check("void f() {\n" // #6898 (Token::expressionString)
               "  int x = 0;\n"
@@ -2611,15 +2626,27 @@ private:
               "}\n");
         ASSERT_EQUALS("", errout.str());
 
+        check("int f(void){return 1/abs(10);}");
+        ASSERT_EQUALS("", errout.str());
+
         check("bool f() { \n"
               "    int x = 0;\n"
               "    return x; \n"
               "}\n");
         ASSERT_EQUALS("", errout.str());
 
-        check("int f() {\n"
+        check("bool f() {\n"
               "    const int a = 50;\n"
               "    const int b = 52;\n"
+              "    return a+b;\n"
+              "}\n");
+        ASSERT_EQUALS("", errout.str());
+
+        check("int f() {\n"
+              "    int a = 50;\n"
+              "    int b = 52;\n"
+              "    a++;\n"
+              "    b++;\n"
               "    return a+b;\n"
               "}\n");
         ASSERT_EQUALS("", errout.str());
@@ -2638,6 +2665,42 @@ private:
               "        b = false;\n"
               "        return b;\n"
               "    }\n"
+              "};\n");
+        ASSERT_EQUALS("", errout.str());
+
+        check("bool f(long maxtime) {\n"
+              "  if (std::time(0) > maxtime)\n"
+              "    return std::time(0) > maxtime;\n"
+              "}\n");
+        ASSERT_EQUALS("", errout.str());
+
+        check("void foo(double param) {\n"
+              "  while(bar()) {\n"
+              "    if (param<0.)\n"
+              "       return;\n"
+              "  }\n"
+              "  if (param<0.)\n"
+              "    return;\n"
+              "}\n");
+        ASSERT_EQUALS("", errout.str());
+
+        check("void foo(int i) {\n"
+              "  if (i==42)\n"
+              "  {\n"
+              "    bar();\n"
+              "  }\n"
+              "  if (cond && (42==i))\n"
+              "    return;\n"
+              "}\n");
+        ASSERT_EQUALS("", errout.str());
+
+        // 8842 crash
+        check("class a {\n"
+              "  int b;\n"
+              "  c(b);\n"
+              "  void f() {\n"
+              "    if (b) return;\n"
+              "  }\n"
               "};\n");
         ASSERT_EQUALS("", errout.str());
     }

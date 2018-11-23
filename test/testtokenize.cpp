@@ -840,7 +840,11 @@ private:
                                 "};\n"
                                 "template <class T> Containter<T>::Containter() : mElements(nullptr) {}\n"
                                 "Containter<int> intContainer;";
-            const char exp [] = "6: Containter<int> intContainer@1 ; struct Containter<int> {\n"
+            const char exp [] = "1: struct Containter<int> ;\n"
+                                "2:\n"
+                                "|\n"
+                                "5:\n"
+                                "6: Containter<int> intContainer@1 ; struct Containter<int> {\n"
                                 "2: Containter<int> ( ) ;\n"
                                 "3: int * mElements@2 ;\n"
                                 "4: } ;\n"
@@ -4712,6 +4716,16 @@ private:
             const Token *A = Token::findsimplematch(tokenizer.tokens(), "A <");
             ASSERT_EQUALS(true, A->next()->link() == A->tokAt(3));
         }
+        {
+            // #8851
+            const char code[] = "template<typename std::enable_if<!(std::value1) && std::value2>::type>"
+                                "void basic_json() {}";
+            errout.str("");
+            Tokenizer tokenizer(&settings0, this);
+            std::istringstream istr(code);
+            tokenizer.tokenize(istr, "test.cpp");
+            ASSERT_EQUALS(true, Token::simpleMatch(tokenizer.tokens()->next()->link(), "> void"));
+        }
     }
 
     void simplifyString() {
@@ -5027,7 +5041,14 @@ private:
                            "{\n"
                            "  fn2<int>();\n"
                            "}\n";
-        ASSERT_EQUALS("int main ( )\n{\nfn2<int> ( ) ;\n} void fn2<int> ( int t = [ ] { return 1 ; } ( ) )\n{ }", tokenizeAndStringify(code));
+        ASSERT_EQUALS("void fn2<int> ( int t = [ ] { return 1 ; } ( ) ) ;\n"
+                      "\n"
+                      "\n"
+                      "int main ( )\n"
+                      "{\n"
+                      "fn2<int> ( ) ;\n"
+                      "} void fn2<int> ( int t = [ ] { return 1 ; } ( ) )\n"
+                      "{ }", tokenizeAndStringify(code));
     }
 
     void cpp0xtemplate2() {
@@ -6151,8 +6172,8 @@ private:
         ASSERT_EQUALS("; foo :: foo ( ) { }",
                       tokenizeAndStringify("; AB(foo*) foo::foo() { }"));
 
-        // #4834
-        ASSERT_EQUALS("A(B) foo ( ) { }", tokenizeAndStringify("A(B) foo() {}"));
+        // #4834 - syntax error
+        ASSERT_THROW(tokenizeAndStringify("A(B) foo() {}"), InternalError);
 
         // #3855
         ASSERT_EQUALS("; class foo { }",
@@ -8532,6 +8553,8 @@ private:
         ASSERT_EQUALS("xatoistr({(=", testAst("x = (struct X){atoi(str)};"));
         ASSERT_EQUALS("xa.0=b.0=,c.0=,{(=", testAst("x = (struct abc) { .a=0, .b=0, .c=0 };"));
 
+        ASSERT_EQUALS("yz.(return", testAst("return (x)(y).z;"));
+
         // not cast
         ASSERT_EQUALS("AB||", testAst("(A)||(B)"));
         ASSERT_EQUALS("abc[1&=", testAst("a = (b[c]) & 1;"));
@@ -8551,10 +8574,15 @@ private:
         ASSERT_EQUALS("{([cd,(return 0return", testAst("return [](int a, int b) -> int { return 0; }(c, d);"));
         ASSERT_EQUALS("x{([=", testAst("x = [&]()->std::string const & {};"));
         ASSERT_EQUALS("f{([=", testAst("f = []() -> foo* {};"));
+        ASSERT_EQUALS("f{([=", testAst("f = [](void) mutable -> foo* {};"));
+        ASSERT_EQUALS("f{([=", testAst("f = []() mutable {};"));
 
         ASSERT_EQUALS("x{([= 0return", testAst("x = [](){return 0; };"));
 
         ASSERT_EQUALS("ab{[(= cd=", testAst("a = b([&]{c=d;});"));
+
+        // 8628
+        ASSERT_EQUALS("f{([( switchx( 1case y++", testAst("f([](){switch(x){case 1:{++y;}}});"));
     }
 
     void astcase() {

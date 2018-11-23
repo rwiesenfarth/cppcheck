@@ -22,6 +22,7 @@
 #define astutilsH
 //---------------------------------------------------------------------------
 
+#include <functional>
 #include <string>
 #include <vector>
 
@@ -31,6 +32,19 @@ class Library;
 class Settings;
 class Token;
 class Variable;
+
+enum class ChildrenToVisit {
+    none,
+    op1,
+    op2,
+    op1_and_op2,
+    done  // found what we looked for, don't visit any more children
+};
+
+/**
+ * Visit AST nodes recursively. The order is not "well defined"
+ */
+void visitAstNodes(const Token *ast, std::function<ChildrenToVisit(const Token *)> visitor);
 
 /** Is expression a 'signed char' if no promotion is used */
 bool astIsSignedChar(const Token *tok);
@@ -42,6 +56,12 @@ bool astIsIntegral(const Token *tok, bool unknown);
 bool astIsFloat(const Token *tok, bool unknown);
 /** Is expression of boolean type? */
 bool astIsBool(const Token *tok);
+
+bool astIsPointer(const Token *tok);
+
+bool astIsIterator(const Token *tok);
+
+bool astIsContainer(const Token *tok);
 
 /**
  * Get canonical type of expression. const/static/etc are not included and neither *&.
@@ -58,6 +78,8 @@ std::string astCanonicalType(const Token *expr);
 const Token * astIsVariableComparison(const Token *tok, const std::string &comp, const std::string &rhs, const Token **vartok=nullptr);
 
 const Token * nextAfterAstRightmostLeaf(const Token * tok);
+
+bool precedes(const Token * tok1, const Token * tok2);
 
 bool isSameExpression(bool cpp, bool macro, const Token *tok1, const Token *tok2, const Library& library, bool pure, bool followVar, ErrorPath* errors=nullptr);
 
@@ -126,7 +148,6 @@ std::vector<const Token *> getArguments(const Token *ftok);
 
 /**
  * find lambda function end token
- * \todo handle explicit return type
  * \param first The [ token
  * \return nullptr or the }
  */

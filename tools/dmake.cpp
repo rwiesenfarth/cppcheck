@@ -301,13 +301,13 @@ int main(int argc, char **argv)
 //                                "-Woverloaded-virtual "  // danmar: we get fp when overloading analyseWholeProgram()
                                 "-Wpacked "
                                 "-Wredundant-decls "
-                                "-Wshadow "
+                                "-Wno-shadow "
 //                                "-Wsign-conversion "
 //                                "-Wsign-promo "
                                 "-Wno-missing-field-initializers "
                                 "-Wno-missing-braces "
 //                                "-Wunreachable-code "
-                                "-Wno-sign-compare "  // danmar: I don't like this warning, it's very rarelly a bug
+                                "-Wno-sign-compare "  // danmar: I don't like this warning, it's very rarely a bug
                                 "-Wno-multichar "
                                 "$(CPPCHK_GLIBCXX_DEBUG) "
                                 "-g");
