@@ -114,20 +114,21 @@ bool ProjectFile::read( const std::string &filename )
         return false;
 
     auto root = project->FirstChildElement(RootPathName);
-    if (root)
-        mRootPath = root->Attribute(RootPathNameAttrib, "");
+    if (root) {
+        mRootPath = charPointerToString(root->Attribute(RootPathNameAttrib));
+    }
 
     auto buildDir = project->FirstChildElement(BuildDirElementName);
     if (buildDir)
-        mBuildDir = buildDir->GetText();
+        mBuildDir = charPointerToString(buildDir->GetText());
 
     auto platform = project->FirstChildElement(PlatformElementName);
     if (platform)
-        mPlatform = platform->GetText();
+        mPlatform = charPointerToString(platform->GetText());
 
     auto importProject = project->FirstChildElement(ImportProjectElementName);
     if (importProject)
-        mImportProject = importProject->GetText();
+        mImportProject = charPointerToString(importProject->GetText());
 
     auto analyzeAllVsConfigs = project->FirstChildElement(AnalyzeAllVsConfigsElementName);
     if (analyzeAllVsConfigs)
@@ -137,7 +138,7 @@ bool ProjectFile::read( const std::string &filename )
     if (includeDirList) {
         auto includeDir = includeDirList->FirstChildElement(DirElementName);
         while (includeDir) {
-            mIncludeDirs.push_back(includeDir->Attribute(DirNameAttrib, ""));
+            mIncludeDirs.push_back(charPointerToString(includeDir->Attribute(DirNameAttrib)));
             includeDir = includeDir->NextSiblingElement(DirElementName);
         }
     }
@@ -146,7 +147,7 @@ bool ProjectFile::read( const std::string &filename )
     if (defineList) {
         auto define = defineList->FirstChildElement(DefineName);
         while (define) {
-            mDefines.push_back(define->Attribute(DefineNameAttrib, ""));
+            mDefines.push_back(charPointerToString(define->Attribute(DefineNameAttrib)));
             define = define->NextSiblingElement(DefineName);
         }
     }
@@ -155,7 +156,7 @@ bool ProjectFile::read( const std::string &filename )
     if (undefineList) {
         auto undefine = undefineList->FirstChildElement(UndefineName);
         while (undefine) {
-            mUndefines.push_back(undefine->GetText());
+            mUndefines.push_back(charPointerToString(undefine->GetText()));
             undefine = undefine->NextSiblingElement(UndefinesElementName);
         }
     }
@@ -164,7 +165,7 @@ bool ProjectFile::read( const std::string &filename )
     if (pathList) {
         auto path = pathList->FirstChildElement(PathName);
         while (path) {
-            mPaths.push_back(path->Attribute(PathNameAttrib, ""));
+            mPaths.push_back(charPointerToString(path->Attribute(PathNameAttrib)));
             path = path->NextSiblingElement(PathName);
         }
     }
@@ -173,7 +174,7 @@ bool ProjectFile::read( const std::string &filename )
     if (excludeList) {
         auto path = excludeList->FirstChildElement(ExcludePathName);
         while (path) {
-            mExcludedPaths.push_back(path->Attribute(ExcludePathNameAttrib, ""));
+            mExcludedPaths.push_back(charPointerToString(path->Attribute(ExcludePathNameAttrib)));
             path = path->NextSiblingElement(ExcludePathName);
         }
     }
@@ -182,7 +183,7 @@ bool ProjectFile::read( const std::string &filename )
     if (libraryList) {
         auto library = libraryList->FirstChildElement(LibraryElementName);
         while (library) {
-            mLibraries.push_back(library->GetText());
+            mLibraries.push_back(charPointerToString(library->GetText()));
             library = library->NextSiblingElement(LibraryElementName);
         }
     }
@@ -192,10 +193,11 @@ bool ProjectFile::read( const std::string &filename )
         auto suppression = suppressionList->FirstChildElement(SuppressionElementName);
         while (suppression) {
             Suppressions::Suppression sup;
-            sup.errorId = suppression->GetText();
-            sup.fileName = suppression->Attribute(SuppressionFileNameAttrib);
+
+            sup.errorId = charPointerToString(suppression->GetText());
+            sup.fileName = charPointerToString(suppression->Attribute(SuppressionFileNameAttrib));
             sup.lineNumber = suppression->IntAttribute(SuppressionLineNumberAttrib, Suppressions::Suppression::NO_LINE);
-            sup.symbolName = suppression->Attribute(SuppressionSymbolNameAttrib);
+            sup.symbolName = charPointerToString(suppression->Attribute(SuppressionSymbolNameAttrib));
             mSuppressions.push_back(sup);
             suppression = suppression->NextSiblingElement(SuppressionElementName);
         }
@@ -205,7 +207,7 @@ bool ProjectFile::read( const std::string &filename )
     if (addonList) {
         auto addon = addonList->FirstChildElement(AddonElementName);
         while (addon) {
-            mAddons << QString::fromUtf8(addon->GetText());
+            mAddons << stdToQt(charPointerToString(addon->GetText()));
             addon = addon->NextSiblingElement(AddonElementName);
         }
     }
@@ -214,7 +216,7 @@ bool ProjectFile::read( const std::string &filename )
     if (toolList) {
         auto tool = toolList->FirstChildElement(ToolElementName);
         while (tool) {
-            std::string toolName(tool->GetText());
+            std::string toolName(charPointerToString(tool->GetText()));
             mClangAnalyzer |= (toolName == CLANG_ANALYZER);
             mClangTidy |= (toolName == CLANG_TIDY);
             tool = tool->NextSiblingElement(ToolElementName);
@@ -225,7 +227,7 @@ bool ProjectFile::read( const std::string &filename )
     if (tagList) {
         auto tag = tagList->FirstChildElement(TagElementName);
         while (tag) {
-            mTags << QString::fromUtf8(tag->GetText());
+            mTags << stdToQt(charPointerToString(tag->GetText()));
             tag = tag->NextSiblingElement(TagElementName);
         }
     }
@@ -425,6 +427,11 @@ void ProjectFile::writeStringList(tinyxml2::XMLDocument &xmlDoc, tinyxml2::XMLEl
         element->SetText(str.c_str());
         list->InsertEndChild(element);
     }
+}
+
+std::string ProjectFile::charPointerToString(const char *cString)
+{
+    return std::string(cString ? cString : "");
 }
 
 std::vector<std::string> ProjectFile::fromNativeSeparators(const std::vector<std::string> &paths)

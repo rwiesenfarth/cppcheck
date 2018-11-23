@@ -48,7 +48,7 @@ public:
     };
 
     struct CPPCHECKLIB Suppression {
-        Suppression() : lineNumber(NO_LINE), matched(false) {}
+        Suppression() : errorId(), fileName(), lineNumber(NO_LINE), matched(false), symbolName() {}
         Suppression(const Suppression &other) {
             *this = other;
         }

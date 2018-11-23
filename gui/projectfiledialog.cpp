@@ -26,6 +26,7 @@
 #include <QDir>
 #include <QSettings>
 #include <QProcess>
+#include <algorithm>
 #include "common.h"
 #include "newsuppressiondialog.h"
 #include "projectfiledialog.h"
@@ -640,35 +641,24 @@ void ProjectFileDialog::removeSuppression()
     if (!item)
         return;
 
-    int suppressionIndex = getSuppressionIndex(item->text());
-    if (suppressionIndex >= 0)
-        mSuppressions.removeAt(suppressionIndex);
+    std::string key = qtToStd(item->text());
+    mSuppressions.erase(std::remove_if(mSuppressions.begin(), mSuppressions.end(), [&key](const Suppressions::Suppression &elem){return (elem.getText() == key);}));
     delete item;
 }
 
 void ProjectFileDialog::editSuppression(const QModelIndex &)
 {
     const int row = mUI.mListSuppressions->currentRow();
-    QListWidgetItem *item = mUI.mListSuppressions->item(row);
-    int suppressionIndex = getSuppressionIndex(item->text());
-    if (suppressionIndex >= 0) { // TODO what if suppression is not found?
+    std::string key = qtToStd(mUI.mListSuppressions->item(row)->text());
+    auto it = std::find_if(mSuppressions.begin(), mSuppressions.end(), [&key](const Suppressions::Suppression &elem){return (elem.getText() == key);});
+    if (it != mSuppressions.end()) { // TODO what if suppression is not found?
         NewSuppressionDialog dlg;
-        dlg.setSuppression(mSuppressions[suppressionIndex]);
+        dlg.setSuppression(*it);
         if (dlg.exec() == QDialog::Accepted) {
-            mSuppressions[suppressionIndex] = dlg.getSuppression();
+            *it = dlg.getSuppression();
             setSuppressions(mSuppressions);
         }
     }
-}
-
-int ProjectFileDialog::getSuppressionIndex(const QString &shortText) const
-{
-    const std::string s = shortText.toStdString();
-    for (int i = 0; i < mSuppressions.size(); ++i) {
-        if (mSuppressions[i].getText() == s)
-            return i;
-    }
-    return -1;
 }
 
 void ProjectFileDialog::browseMisraFile()

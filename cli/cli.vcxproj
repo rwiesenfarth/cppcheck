@@ -206,7 +206,7 @@
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
     <ClCompile>
-      <AdditionalIncludeDirectories>..\lib;..\externals\..\externals\simplecpp;..\externals\tinyxml;..\..\..\qt-5.6.2_TP-vs2015\include;..\..\..\qt-5.6.2_TP-vs2015\include\QtCore;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>..\lib;..\externals;..\externals\simplecpp;..\externals\tinyxml;..\..\..\qt-5.6.2_TP-vs2015\include;..\..\..\qt-5.6.2_TP-vs2015\include\QtCore;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <BufferSecurityCheck>true</BufferSecurityCheck>
       <DebugInformationFormat>ProgramDatabase</DebugInformationFormat>
       <Optimization>Disabled</Optimization>

@@ -14,6 +14,7 @@
     <ProjectGuid>{59DB16EE-B65D-45B8-8304-520E20978D01}</ProjectGuid>
     <RootNamespace>cppcheck-gui</RootNamespace>
     <Keyword>Qt4VSv1.0</Keyword>
+    <WindowsTargetPlatformVersion>8.1</WindowsTargetPlatformVersion>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'" Label="Configuration">
@@ -49,7 +50,7 @@
     <TargetName Condition="'$(Configuration)|$(Platform)'=='Release|x64'">cppcheck-gui</TargetName>
     <IgnoreImportLibrary Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</IgnoreImportLibrary>
     <LinkIncremental Condition="'$(Configuration)|$(Platform)'=='Release|x64'">false</LinkIncremental>
-    <OutDir Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">..\bin\</OutDir>
+    <OutDir Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">..\bin\debug\</OutDir>
     <IntDir Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">temp\generated\</IntDir>
     <TargetName Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">cppcheck-gui</TargetName>
     <IgnoreImportLibrary Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</IgnoreImportLibrary>
@@ -100,7 +101,7 @@
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
     <ClCompile>
-      <AdditionalIncludeDirectories>.;.;..\lib;..\..\..\qt-5.6.2_TP-vs2015\include;..\..\..\qt-5.6.2_TP-vs2015\include\QtPrintSupport;..\..\..\qt-5.6.2_TP-vs2015\include\QtWidgets;..\..\..\qt-5.6.2_TP-vs2015\include\QtGui;..\..\..\qt-5.6.2_TP-vs2015\include\QtCore;temp\generated;temp\generated;..\..\..\qt-5.6.2_TP-vs2015\mkspecs\win32-msvc2015;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>.;..\lib;..\..\..\qt-5.6.2_TP-vs2015\include;..\..\..\qt-5.6.2_TP-vs2015\include\QtPrintSupport;..\..\..\qt-5.6.2_TP-vs2015\include\QtWidgets;..\..\..\qt-5.6.2_TP-vs2015\include\QtGui;..\..\..\qt-5.6.2_TP-vs2015\include\QtCore;temp\generated;..\..\..\qt-5.6.2_TP-vs2015\mkspecs\win32-msvc2015;..\externals;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <AdditionalOptions>-Zc:strictStrings -Zc:throwingNew -w34100 -w34189 -w44996 -w44456 -w44457 -w44458 %(AdditionalOptions)</AdditionalOptions>
       <AssemblerListingLocation>temp\generated\</AssemblerListingLocation>
       <BrowseInformation>false</BrowseInformation>
@@ -118,7 +119,7 @@
       <WarningLevel>Level3</WarningLevel>
     </ClCompile>
     <Link>
-      <AdditionalDependencies>D:\Develop\qt-5.6.2_TP-vs2015\lib\qtmain_TPd.lib;shell32.lib;glu32.lib;opengl32.lib;gdi32.lib;user32.lib;../bin/cppcheck-core.lib;D:\Develop\qt-5.6.2_TP-vs2015\lib\Qt5PrintSupport_TPd.lib;D:\Develop\qt-5.6.2_TP-vs2015\lib\Qt5Widgets_TPd.lib;D:\Develop\qt-5.6.2_TP-vs2015\lib\Qt5Gui_TPd.lib;D:\Develop\qt-5.6.2_TP-vs2015\lib\Qt5Core_TPd.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>D:\Develop\qt-5.6.2_TP-vs2015\lib\qtmain_TPd.lib;shell32.lib;glu32.lib;opengl32.lib;gdi32.lib;user32.lib;../bin/debug/cppcheck-core.lib;D:\Develop\qt-5.6.2_TP-vs2015\lib\Qt5PrintSupport_TPd.lib;D:\Develop\qt-5.6.2_TP-vs2015\lib\Qt5Widgets_TPd.lib;D:\Develop\qt-5.6.2_TP-vs2015\lib\Qt5Gui_TPd.lib;D:\Develop\qt-5.6.2_TP-vs2015\lib\Qt5Core_TPd.lib;%(AdditionalDependencies)</AdditionalDependencies>
       <AdditionalLibraryDirectories>D:\Develop\qt-5.6.2_TP-vs2015\lib;D:\Develop\GIT_Work\cppcheck\externals;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
       <AdditionalOptions>"/MANIFESTDEPENDENCY:type='win32' name='Microsoft.Windows.Common-Controls' version='6.0.0.0' publicKeyToken='6595b64144ccf1df' language='*' processorArchitecture='*'" %(AdditionalOptions)</AdditionalOptions>
       <DataExecutionPrevention>true</DataExecutionPrevention>

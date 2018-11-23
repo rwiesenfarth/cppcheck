@@ -41,7 +41,10 @@ Suppressions::Suppression NewSuppressionDialog::getSuppression() const
     if (ret.errorId.empty())
         ret.errorId = "*";
     ret.fileName = mUI->mTextFileName->text().toStdString();
-    ret.lineNumber = mUI->mTextLineNumber->text().toInt();
+    if (!mUI->mTextLineNumber->text().isEmpty())
+        ret.lineNumber = mUI->mTextLineNumber->text().toInt();
+    else
+        ret.lineNumber = Suppressions::Suppression::NO_LINE;
     ret.symbolName = mUI->mTextSymbolName->text().toStdString();
     return ret;
 }

@@ -288,6 +288,13 @@ private:
     void clear();
 
     /**
+     * @brief Create a std::string from a char pointer which might be nullptr
+     * @param cString a character pointer that might be nullptr
+     * @return The std::string equivalent, or an empty string if @arg cString was nullptr
+     */
+    static std::string charPointerToString(const char *cString);
+
+    /**
      * @brief Convert paths
      */
     static std::vector<std::string> fromNativeSeparators(const std::vector<std::string> &paths);
