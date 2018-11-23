@@ -142,7 +142,7 @@ bool CmdLineParser::loadGuiProject(const char exename[], const std::string& proj
     ProjectFile project;
 
     printMessage("diag: try loading '" + projectFile + "'.");
-    if (!project.read(QString::fromStdString(projectFile))) {
+    if (!project.read(projectFile)) {
         printMessage("cppcheck: Failed to load GUI project '" + projectFile + "'.");
         return false;
     }
@@ -154,7 +154,7 @@ bool CmdLineParser::loadGuiProject(const char exename[], const std::string& proj
 
     // QString getBuildDir()
     // --cppcheck-build-dir
-    auto buildDir = project.getBuildDir().toStdString();
+    auto buildDir = project.getBuildDir();
     if (!buildDir.empty()) {
         mSettings->buildDir = Path::fromNativeSeparators(buildDir);
         if (endsWith(mSettings->buildDir, '/'))
@@ -163,7 +163,7 @@ bool CmdLineParser::loadGuiProject(const char exename[], const std::string& proj
 
     // QString getImportProject()
     // --project
-    auto importProject = project.getImportProject().toStdString();
+    auto importProject = project.getImportProject();
     if (!importProject.empty()) {
         if (!loadImportProject(exename, importProject))
             return false;
@@ -175,9 +175,7 @@ bool CmdLineParser::loadGuiProject(const char exename[], const std::string& proj
 
     // QStringList getIncludeDirs() const
     // -I
-    for (auto qtPath : project.getIncludeDirs()) {
-        auto path = qtPath.toStdString();
-
+    for (auto path : project.getIncludeDirs()) {
         path = Path::removeQuotationMarks(path);
         path = Path::fromNativeSeparators(path);
 
@@ -190,9 +188,7 @@ bool CmdLineParser::loadGuiProject(const char exename[], const std::string& proj
 
     // QStringList getDefines() const
     // -D
-    for (auto qtDefine : project.getDefines()) {
-        auto define = qtDefine.toStdString();
-
+    for (auto define : project.getDefines()) {
         // No "=", append a "=1"
         if (define.find('=') == std::string::npos)
             define += "=1";
@@ -206,41 +202,30 @@ bool CmdLineParser::loadGuiProject(const char exename[], const std::string& proj
 
     // QStringList getUndefines() const
     // -U
-    for (auto qtUndefine : project.getUndefines()) {
-        auto undefine = qtUndefine.toStdString();
-
+    for (const auto &undefine : project.getUndefines())
         mSettings->userUndefs.insert(undefine);
-    }
 
     // QStringList getCheckPaths()
     // --file-list
-    for (auto qtPathName : project.getCheckPaths()) {
-        auto pathName = qtPathName.toStdString();
-
-        mPathNames.push_back(pathName);
-    }
+    mPathNames = project.getCheckPaths();
 
     // QStringList getExcludedPaths() const
     // --config-exclude / --config-excludes-files
-    for (auto qtExcludePath : project.getExcludedPaths()) {
-        auto excludePath = qtExcludePath.toStdString();
-
+    for (auto excludePath : project.getExcludedPaths()) {
         excludePath = Path::fromNativeSeparators(excludePath);
         mSettings->configExcludePaths.insert(excludePath);
     }
 
     // QStringList getLibraries() const
     // --library
-    for (auto qtLibrary : project.getLibraries()) {
-        auto library = qtLibrary.toStdString();
-
+    for (const auto &library : project.getLibraries()) {
         if (!CppCheckExecutor::tryLoadLibrary(mSettings->library, exename, library.c_str()))
            return false;
     }
 
     // QString getPlatform() const
     // --platform
-    auto platform = project.getPlatform().toStdString();
+    const auto &platform = project.getPlatform();
     if (!platform.empty()) {
         if (!setPlatform(exename, platform))
             return false;

@@ -66,7 +66,7 @@ ProjectFileDialog::ProjectFileDialog(ProjectFile *projectFile, QWidget *parent)
 
     mUI.mToolClangAnalyzer->hide();
 
-    const QFileInfo inf(projectFile->getFilename());
+    const QFileInfo inf(stdToQt(projectFile->getFilename()));
     QString filename = inf.fileName();
     QString title = tr("Project file: %1").arg(filename);
     setWindowTitle(title);
@@ -203,17 +203,17 @@ static void updateAddonCheckBox(QCheckBox *cb, const ProjectFile *projectFile, c
 
 void ProjectFileDialog::loadFromProjectFile(const ProjectFile *projectFile)
 {
-    setRootPath(projectFile->getRootPath());
-    setBuildDir(projectFile->getBuildDir());
-    setIncludepaths(projectFile->getIncludeDirs());
-    setDefines(projectFile->getDefines());
-    setUndefines(projectFile->getUndefines());
-    setCheckPaths(projectFile->getCheckPaths());
-    setImportProject(projectFile->getImportProject());
+    setRootPath(stdToQt(projectFile->getRootPath()));
+    setBuildDir(stdToQt(projectFile->getBuildDir()));
+    setIncludepaths(stdToQt(projectFile->getIncludeDirs()));
+    setDefines(stdToQt(projectFile->getDefines()));
+    setUndefines(stdToQt(projectFile->getUndefines()));
+    setCheckPaths(stdToQt(projectFile->getCheckPaths()));
+    setImportProject(stdToQt(projectFile->getImportProject()));
     mUI.mChkAllVsConfigs->setChecked(projectFile->getAnalyzeAllVsConfigs());
-    setExcludedPaths(projectFile->getExcludedPaths());
-    setLibraries(projectFile->getLibraries());
-    const QString platform = projectFile->getPlatform();
+    setExcludedPaths(stdToQt(projectFile->getExcludedPaths()));
+    setLibraries(stdToQt(projectFile->getLibraries()));
+    const QString platform = stdToQt(projectFile->getPlatform());
     if (platform.endsWith(".xml")) {
         int i;
         for (i = numberOfBuiltinPlatforms; i < mUI.mComboBoxPlatform->count(); ++i) {
@@ -239,7 +239,7 @@ void ProjectFileDialog::loadFromProjectFile(const ProjectFile *projectFile)
             mUI.mComboBoxPlatform->setCurrentIndex(-1);
     }
 
-    mUI.mComboBoxPlatform->setCurrentText(projectFile->getPlatform());
+    mUI.mComboBoxPlatform->setCurrentText(platform);
     setSuppressions(projectFile->getSuppressions());
 
     QSettings settings;
@@ -271,24 +271,24 @@ void ProjectFileDialog::loadFromProjectFile(const ProjectFile *projectFile)
 
 void ProjectFileDialog::saveToProjectFile(ProjectFile *projectFile) const
 {
-    projectFile->setRootPath(getRootPath());
-    projectFile->setBuildDir(getBuildDir());
-    projectFile->setImportProject(getImportProject());
+    projectFile->setRootPath(qtToStd(getRootPath()));
+    projectFile->setBuildDir(qtToStd(getBuildDir()));
+    projectFile->setImportProject(qtToStd(getImportProject()));
     projectFile->setAnalyzeAllVsConfigs(mUI.mChkAllVsConfigs->isChecked());
-    projectFile->setIncludes(getIncludePaths());
-    projectFile->setDefines(getDefines());
-    projectFile->setUndefines(getUndefines());
-    projectFile->setCheckPaths(getCheckPaths());
-    projectFile->setExcludedPaths(getExcludedPaths());
-    projectFile->setLibraries(getLibraries());
+    projectFile->setIncludes(qtToStd(getIncludePaths()));
+    projectFile->setDefines(qtToStd(getDefines()));
+    projectFile->setUndefines(qtToStd(getUndefines()));
+    projectFile->setCheckPaths(qtToStd(getCheckPaths()));
+    projectFile->setExcludedPaths(qtToStd(getExcludedPaths()));
+    projectFile->setLibraries(qtToStd(getLibraries()));
     if (mUI.mComboBoxPlatform->currentText().endsWith(".xml"))
-        projectFile->setPlatform(mUI.mComboBoxPlatform->currentText());
+        projectFile->setPlatform(qtToStd(mUI.mComboBoxPlatform->currentText()));
     else {
         int i = mUI.mComboBoxPlatform->currentIndex();
         if (i < numberOfBuiltinPlatforms)
             projectFile->setPlatform(cppcheck::Platform::platformString(builtinPlatforms[i]));
         else
-            projectFile->setPlatform(QString());
+            projectFile->setPlatform(std::string());
     }
     projectFile->setSuppressions(getSuppressions());
     QStringList list;
@@ -315,7 +315,7 @@ void ProjectFileDialog::ok()
 
 QString ProjectFileDialog::getExistingDirectory(const QString &caption, bool trailingSlash)
 {
-    const QFileInfo inf(mProjectFile->getFilename());
+    const QFileInfo inf(stdToQt(mProjectFile->getFilename()));
     const QString rootpath = inf.absolutePath();
     QString selectedDir = QFileDialog::getExistingDirectory(this,
                           caption,
@@ -373,7 +373,7 @@ void ProjectFileDialog::clearImportProject()
 
 void ProjectFileDialog::browseImportProject()
 {
-    const QFileInfo inf(mProjectFile->getFilename());
+    const QFileInfo inf(stdToQt(mProjectFile->getFilename()));
     const QDir &dir = inf.absoluteDir();
     QMap<QString,QString> filters;
     filters[tr("Visual Studio")] = "*.sln *.vcxproj";
@@ -531,7 +531,7 @@ void ProjectFileDialog::setLibraries(const QStringList &libraries)
     }
 }
 
-void ProjectFileDialog::setSuppressions(const QList<Suppressions::Suppression> &suppressions)
+void ProjectFileDialog::setSuppressions(const std::vector<Suppressions::Suppression> &suppressions)
 {
     mSuppressions = suppressions;
 
@@ -628,7 +628,8 @@ void ProjectFileDialog::addSuppression()
 {
     NewSuppressionDialog dlg;
     if (dlg.exec() == QDialog::Accepted) {
-        setSuppressions(mSuppressions << dlg.getSuppression());
+        mSuppressions.push_back(dlg.getSuppression());
+        setSuppressions(mSuppressions);
     }
 }
 

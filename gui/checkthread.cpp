@@ -429,7 +429,7 @@ void CheckThread::parseClangErrors(const QString &tool, const QString &file0, QS
         errorMessage.symbolNames = e.symbolNames.toStdString();
 
         bool isSuppressed = false;
-        foreach (const Suppressions::Suppression &suppression, mSuppressions) {
+        for (const Suppressions::Suppression &suppression : mSuppressions) {
             if (suppression.isSuppressed(errorMessage)) {
                 isSuppressed = true;
                 break;

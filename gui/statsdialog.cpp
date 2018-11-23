@@ -46,11 +46,11 @@ StatsDialog::StatsDialog(QWidget *parent)
 void StatsDialog::setProject(const ProjectFile* projectFile)
 {
     if (projectFile) {
-        mUI.mProject->setText(projectFile->getRootPath());
-        mUI.mPaths->setText(projectFile->getCheckPaths().join(";"));
-        mUI.mIncludePaths->setText(projectFile->getIncludeDirs().join(";"));
-        mUI.mDefines->setText(projectFile->getDefines().join(";"));
-        mUI.mUndefines->setText(projectFile->getUndefines().join(";"));
+        mUI.mProject->setText(stdToQt(projectFile->getRootPath()));
+        mUI.mPaths->setText(stdToQt(projectFile->getCheckPaths()).join(";"));
+        mUI.mIncludePaths->setText(stdToQt(projectFile->getIncludeDirs()).join(";"));
+        mUI.mDefines->setText(stdToQt(projectFile->getDefines()).join(";"));
+        mUI.mUndefines->setText(stdToQt(projectFile->getUndefines()).join(";"));
 #ifndef HAVE_QCHART
         mUI.mTabHistory->setVisible(false);
 #else

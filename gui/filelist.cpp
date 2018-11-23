@@ -22,6 +22,7 @@
 #include "filelist.h"
 #include "path.h"
 #include "pathmatch.h"
+#include "common.h"
 
 QStringList FileList::getDefaultFilters()
 {
@@ -107,21 +108,12 @@ void FileList::addExcludeList(const QStringList &paths)
     mExcludedPaths = paths;
 }
 
-static std::vector<std::string> toStdStringList(const QStringList &stringList)
-{
-    std::vector<std::string> ret;
-    foreach (const QString &s, stringList) {
-        ret.push_back(s.toStdString());
-    }
-    return ret;
-}
-
 QStringList FileList::applyExcludeList() const
 {
 #ifdef _WIN32
-    const PathMatch pathMatch(toStdStringList(mExcludedPaths), true);
+    const PathMatch pathMatch(qtToStd(mExcludedPaths), true);
 #else
-    const PathMatch pathMatch(toStdStringList(mExcludedPaths), false);
+    const PathMatch pathMatch(qtToStd(mExcludedPaths), false);
 #endif
 
     QStringList paths;

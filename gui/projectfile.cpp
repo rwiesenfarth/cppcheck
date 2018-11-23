@@ -25,6 +25,7 @@
 #include <QDir>
 #include "projectfile.h"
 #include "common.h"
+#include "path.h"
 
 static const char ProjectElementName[] = "project";
 static const char ProjectVersionAttrib[] = "version";
@@ -66,14 +67,12 @@ static const char ToolsElementName[] = "tools";
 static const char TagsElementName[] = "tags";
 static const char TagElementName[] = "tag";
 
-ProjectFile::ProjectFile(QObject *parent) :
-    QObject(parent)
+ProjectFile::ProjectFile()
 {
     clear();
 }
 
-ProjectFile::ProjectFile(const QString &filename, QObject *parent) :
-    QObject(parent),
+ProjectFile::ProjectFile(const std::string &filename) :
     mFilename(filename)
 {
     clear();
@@ -98,13 +97,13 @@ void ProjectFile::clear()
     mClangAnalyzer = mClangTidy = false;
 }
 
-bool ProjectFile::read( const QString &filename )
+bool ProjectFile::read( const std::string &filename )
 {
-    if(!filename.isEmpty())
+    if(!filename.empty())
         mFilename = filename;
 
     tinyxml2::XMLDocument xmlDoc;
-    auto result = xmlDoc.LoadFile(mFilename.toUtf8().constData());
+    auto result = xmlDoc.LoadFile(mFilename.c_str());
     if (result != tinyxml2::XML_SUCCESS)
         return false;
 
@@ -116,19 +115,19 @@ bool ProjectFile::read( const QString &filename )
 
     auto root = project->FirstChildElement(RootPathName);
     if (root)
-        mRootPath = QString::fromUtf8(root->Attribute(RootPathNameAttrib, ""));
+        mRootPath = root->Attribute(RootPathNameAttrib, "");
 
     auto buildDir = project->FirstChildElement(BuildDirElementName);
     if (buildDir)
-        mBuildDir = QString::fromUtf8(buildDir->GetText());
+        mBuildDir = buildDir->GetText();
 
     auto platform = project->FirstChildElement(PlatformElementName);
     if (platform)
-        mPlatform = QString::fromUtf8(platform->GetText());
+        mPlatform = platform->GetText();
 
     auto importProject = project->FirstChildElement(ImportProjectElementName);
     if (importProject)
-        mImportProject = QString::fromUtf8(importProject->GetText());
+        mImportProject = importProject->GetText();
 
     auto analyzeAllVsConfigs = project->FirstChildElement(AnalyzeAllVsConfigsElementName);
     if (analyzeAllVsConfigs)
@@ -138,7 +137,7 @@ bool ProjectFile::read( const QString &filename )
     if (includeDirList) {
         auto includeDir = includeDirList->FirstChildElement(DirElementName);
         while (includeDir) {
-            mIncludeDirs << QString::fromUtf8(includeDir->Attribute(DirNameAttrib, ""));
+            mIncludeDirs.push_back(includeDir->Attribute(DirNameAttrib, ""));
             includeDir = includeDir->NextSiblingElement(DirElementName);
         }
     }
@@ -147,7 +146,7 @@ bool ProjectFile::read( const QString &filename )
     if (defineList) {
         auto define = defineList->FirstChildElement(DefineName);
         while (define) {
-            mDefines << QString::fromUtf8(define->Attribute(DefineNameAttrib, ""));
+            mDefines.push_back(define->Attribute(DefineNameAttrib, ""));
             define = define->NextSiblingElement(DefineName);
         }
     }
@@ -156,7 +155,7 @@ bool ProjectFile::read( const QString &filename )
     if (undefineList) {
         auto undefine = undefineList->FirstChildElement(UndefineName);
         while (undefine) {
-            mUndefines << QString::fromUtf8(undefine->GetText());
+            mUndefines.push_back(undefine->GetText());
             undefine = undefine->NextSiblingElement(UndefinesElementName);
         }
     }
@@ -165,7 +164,7 @@ bool ProjectFile::read( const QString &filename )
     if (pathList) {
         auto path = pathList->FirstChildElement(PathName);
         while (path) {
-            mPaths << QString::fromUtf8(path->Attribute(PathNameAttrib, ""));
+            mPaths.push_back(path->Attribute(PathNameAttrib, ""));
             path = path->NextSiblingElement(PathName);
         }
     }
@@ -174,7 +173,7 @@ bool ProjectFile::read( const QString &filename )
     if (excludeList) {
         auto path = excludeList->FirstChildElement(ExcludePathName);
         while (path) {
-            mExcludedPaths << QString::fromUtf8(path->Attribute(ExcludePathNameAttrib, ""));
+            mExcludedPaths.push_back(path->Attribute(ExcludePathNameAttrib, ""));
             path = path->NextSiblingElement(ExcludePathName);
         }
     }
@@ -183,7 +182,7 @@ bool ProjectFile::read( const QString &filename )
     if (libraryList) {
         auto library = libraryList->FirstChildElement(LibraryElementName);
         while (library) {
-            mLibraries << QString::fromUtf8(library->GetText());
+            mLibraries.push_back(library->GetText());
             library = library->NextSiblingElement(LibraryElementName);
         }
     }
@@ -197,7 +196,7 @@ bool ProjectFile::read( const QString &filename )
             sup.fileName = suppression->Attribute(SuppressionFileNameAttrib);
             sup.lineNumber = suppression->IntAttribute(SuppressionLineNumberAttrib, Suppressions::Suppression::NO_LINE);
             sup.symbolName = suppression->Attribute(SuppressionSymbolNameAttrib);
-            mSuppressions << sup;
+            mSuppressions.push_back(sup);
             suppression = suppression->NextSiblingElement(SuppressionElementName);
         }
     }
@@ -215,7 +214,7 @@ bool ProjectFile::read( const QString &filename )
     if (toolList) {
         auto tool = toolList->FirstChildElement(ToolElementName);
         while (tool) {
-            auto toolName = tool->GetText();
+            std::string toolName(tool->GetText());
             mClangAnalyzer |= (toolName == CLANG_ANALYZER);
             mClangTidy |= (toolName == CLANG_TIDY);
             tool = tool->NextSiblingElement(ToolElementName);
@@ -230,44 +229,46 @@ bool ProjectFile::read( const QString &filename )
             tag = tag->NextSiblingElement(TagElementName);
         }
     }
+
+    return true;
 }
 
-void ProjectFile::setIncludes(const QStringList &includes)
+void ProjectFile::setIncludes(const std::vector<std::string> &includes)
 {
     mIncludeDirs = includes;
 }
 
-void ProjectFile::setDefines(const QStringList &defines)
+void ProjectFile::setDefines(const std::vector<std::string> &defines)
 {
     mDefines = defines;
 }
 
-void ProjectFile::setUndefines(const QStringList &undefines)
+void ProjectFile::setUndefines(const std::vector<std::string> &undefines)
 {
     mUndefines = undefines;
 }
 
-void ProjectFile::setCheckPaths(const QStringList &paths)
+void ProjectFile::setCheckPaths(const std::vector<std::string> &paths)
 {
     mPaths = paths;
 }
 
-void ProjectFile::setExcludedPaths(const QStringList &paths)
+void ProjectFile::setExcludedPaths(const std::vector<std::string> &paths)
 {
     mExcludedPaths = paths;
 }
 
-void ProjectFile::setLibraries(const QStringList &libraries)
+void ProjectFile::setLibraries(const std::vector<std::string> &libraries)
 {
     mLibraries = libraries;
 }
 
-void ProjectFile::setPlatform(const QString &platform)
+void ProjectFile::setPlatform(const std::string &platform)
 {
     mPlatform = platform;
 }
 
-void ProjectFile::setSuppressions(const QList<Suppressions::Suppression> &suppressions)
+void ProjectFile::setSuppressions(const std::vector<Suppressions::Suppression> &suppressions)
 {
     mSuppressions = suppressions;
 }
@@ -277,9 +278,9 @@ void ProjectFile::setAddons(const QStringList &addons)
     mAddons = addons;
 }
 
-bool ProjectFile::write(const QString &filename)
+bool ProjectFile::write(const std::string &filename)
 {
-    if (!filename.isEmpty())
+    if (!filename.empty())
         mFilename = filename;
 
     tinyxml2::XMLDocument xmlDoc;
@@ -292,27 +293,27 @@ bool ProjectFile::write(const QString &filename)
     project->SetAttribute(ProjectVersionAttrib, ProjectFileVersion);
     xmlDoc.InsertEndChild(project);
 
-    if (!mRootPath.isEmpty()) {
+    if (!mRootPath.empty()) {
         auto root = xmlDoc.NewElement(RootPathName);
-        root->SetAttribute(RootPathNameAttrib, mRootPath.toUtf8().constData());
+        root->SetAttribute(RootPathNameAttrib, mRootPath.c_str());
         project->InsertEndChild(root);
     }
 
-    if (!mBuildDir.isEmpty()) {
+    if (!mBuildDir.empty()) {
         auto buildDir = xmlDoc.NewElement(BuildDirElementName);
-        buildDir->SetText(mBuildDir.toUtf8().constData());
+        buildDir->SetText(mBuildDir.c_str());
         project->InsertEndChild(buildDir);
     }
 
-    if (!mPlatform.isEmpty()) {
+    if (!mPlatform.empty()) {
         auto platform = xmlDoc.NewElement(PlatformElementName);
-        platform->SetText(mPlatform.toUtf8().constData());
+        platform->SetText(mPlatform.c_str());
         project->InsertEndChild(platform);
     }
 
-    if (!mImportProject.isEmpty()) {
+    if (!mImportProject.empty()) {
         auto importProject = xmlDoc.NewElement(ImportProjectElementName);
-        importProject->SetText(mImportProject.toUtf8().constData());
+        importProject->SetText(mImportProject.c_str());
         project->InsertEndChild(importProject);
     }
 
@@ -320,51 +321,51 @@ bool ProjectFile::write(const QString &filename)
     analyzeAllVsConfigs->SetText(mAnalyzeAllVsConfigs ? "true" : "false");
     project->InsertEndChild(analyzeAllVsConfigs);
 
-    if (!mIncludeDirs.isEmpty()) {
+    if (!mIncludeDirs.empty()) {
         auto includeDirList = xmlDoc.NewElement(IncludeDirElementName);
         project->InsertEndChild(includeDirList);
         for (auto incdir : mIncludeDirs) {
             auto includeDir = xmlDoc.NewElement(DirElementName);
-            includeDir->SetAttribute(DirNameAttrib, incdir.toUtf8().constData());
+            includeDir->SetAttribute(DirNameAttrib, incdir.c_str());
             includeDirList->InsertEndChild(includeDir);
         }
     }
 
-    if (!mDefines.isEmpty()) {
+    if (!mDefines.empty()) {
         auto defineList = xmlDoc.NewElement(DefinesElementName);
         project->InsertEndChild(defineList);
         for (auto def : mDefines) {
             auto define = xmlDoc.NewElement(DefineName);
-            define->SetAttribute(DefineNameAttrib, def.toUtf8().constData());
+            define->SetAttribute(DefineNameAttrib, def.c_str());
             defineList->InsertEndChild(define);
         }
     }
 
     writeStringList(xmlDoc, *project, mUndefines, UndefinesElementName, UndefineName);
 
-    if (!mPaths.isEmpty()) {
+    if (!mPaths.empty()) {
         auto pathList = xmlDoc.NewElement(PathsElementName);
         project->InsertEndChild(pathList);
         for (auto p : mPaths) {
             auto path = xmlDoc.NewElement(PathName);
-            path->SetAttribute(PathNameAttrib, p.toUtf8().constData());
+            path->SetAttribute(PathNameAttrib, p.c_str());
             pathList->InsertEndChild(path);
         }
     }
 
-    if (!mExcludedPaths.isEmpty()) {
+    if (!mExcludedPaths.empty()) {
         auto excludeList = xmlDoc.NewElement(ExcludeElementName);
         project->InsertEndChild(excludeList);
         for (auto p : mExcludedPaths) {
             auto path = xmlDoc.NewElement(ExcludePathName);
-            path->SetAttribute(ExcludePathNameAttrib, p.toUtf8().constData());
+            path->SetAttribute(ExcludePathNameAttrib, p.c_str());
             excludeList->InsertEndChild(path);
         }
     }
 
     writeStringList(xmlDoc, *project, mLibraries, LibrariesElementName, LibraryElementName);
 
-    if (!mSuppressions.isEmpty()) {
+    if (!mSuppressions.empty()) {
         auto suppressionList = xmlDoc.NewElement(SuppressionsElementName);
         project->InsertEndChild(suppressionList);
         for (const auto &sup : mSuppressions) {
@@ -394,7 +395,7 @@ bool ProjectFile::write(const QString &filename)
 
     writeStringList(xmlDoc, *project, mTags, TagsElementName, TagElementName);
 
-    auto result = xmlDoc.SaveFile(mFilename.toUtf8().constData());
+    auto result = xmlDoc.SaveFile(mFilename.c_str());
     return result == tinyxml2::XML_SUCCESS;
 }
 
@@ -412,11 +413,25 @@ void ProjectFile::writeStringList(tinyxml2::XMLDocument &xmlDoc, tinyxml2::XMLEl
     }
 }
 
-QStringList ProjectFile::fromNativeSeparators(const QStringList &paths)
+void ProjectFile::writeStringList(tinyxml2::XMLDocument &xmlDoc, tinyxml2::XMLElement &parent, const std::vector<std::string> &stringlist, const char startelementname[], const char stringelementname[])
 {
-    QStringList ret;
-    foreach (const QString &path, paths)
-        ret << QDir::fromNativeSeparators(path);
+    if (stringlist.empty())
+        return;
+
+    auto list = xmlDoc.NewElement(startelementname);
+    parent.InsertEndChild(list);
+    for (auto str : stringlist) {
+        auto element = xmlDoc.NewElement(stringelementname);
+        element->SetText(str.c_str());
+        list->InsertEndChild(element);
+    }
+}
+
+std::vector<std::string> ProjectFile::fromNativeSeparators(const std::vector<std::string> &paths)
+{
+    std::vector<std::string> ret;
+    for (const auto &path : paths)
+        ret.push_back(Path::fromNativeSeparators(path));
     return ret;
 }
 

@@ -19,10 +19,10 @@
 #ifndef PROJECT_FILE_H
 #define PROJECT_FILE_H
 
-#include <QObject>
 #include <QString>
 #include <QStringList>
-#include <QXmlStreamReader>
+#include <string>
+#include <vector>
 
 #include "suppressions.h"
 #include <tinyxml/tinyxml2.h>
@@ -36,32 +36,31 @@
 * The project files contain project-specific settings for checking. For
 * example a list of include paths.
 */
-class ProjectFile : public QObject {
-    //Q_OBJECT
+class ProjectFile {
 
 public:
-    explicit ProjectFile(QObject *parent = 0);
-    ProjectFile(const QString &filename, QObject *parent = 0);
+    explicit ProjectFile();
+    explicit ProjectFile(const std::string &filename);
 
     /**
      * @brief Read the project file.
      * @param filename Filename (can be also given to constructor).
      */
-    bool read(const QString &filename = QString());
+    bool read(const std::string &filename = std::string());
 
     /**
      * @brief Get project root path.
      * @return project root path.
      */
-    QString getRootPath() const {
+    std::string getRootPath() const {
         return mRootPath;
     }
 
-    QString getBuildDir() const {
+    std::string getBuildDir() const {
         return mBuildDir;
     }
 
-    QString getImportProject() const {
+    std::string getImportProject() const {
         return mImportProject;
     }
 
@@ -73,7 +72,7 @@ public:
     * @brief Get list of include directories.
     * @return list of directories.
     */
-    QStringList getIncludeDirs() const {
+    std::vector<std::string> getIncludeDirs() const {
         return ProjectFile::fromNativeSeparators(mIncludeDirs);
     }
 
@@ -81,7 +80,7 @@ public:
     * @brief Get list of defines.
     * @return list of defines.
     */
-    QStringList getDefines() const {
+    std::vector<std::string> getDefines() const {
         return mDefines;
     }
 
@@ -89,7 +88,7 @@ public:
     * @brief Get list of undefines.
     * @return list of undefines.
     */
-    QStringList getUndefines() const {
+    std::vector<std::string> getUndefines() const {
         return mUndefines;
     }
 
@@ -97,7 +96,7 @@ public:
     * @brief Get list of paths to check.
     * @return list of paths.
     */
-    QStringList getCheckPaths() const {
+    std::vector<std::string> getCheckPaths() const {
         return ProjectFile::fromNativeSeparators(mPaths);
     }
 
@@ -105,7 +104,7 @@ public:
     * @brief Get list of paths to exclude from the check.
     * @return list of paths.
     */
-    QStringList getExcludedPaths() const {
+    std::vector<std::string> getExcludedPaths() const {
         return ProjectFile::fromNativeSeparators(mExcludedPaths);
     }
 
@@ -113,7 +112,7 @@ public:
     * @brief Get list libraries.
     * @return list of libraries.
     */
-    QStringList getLibraries() const {
+    std::vector<std::string> getLibraries() const {
         return mLibraries;
     }
 
@@ -121,7 +120,7 @@ public:
      * @brief Get platform.
      * @return Current platform. If it ends with .xml then it is a file. Otherwise it must match one of the return values from @sa cppcheck::Platform::platformString() ("win32A", "unix32", ..)
      */
-    QString getPlatform() const {
+    std::string getPlatform() const {
         return mPlatform;
     }
 
@@ -129,7 +128,7 @@ public:
     * @brief Get list suppressions.
     * @return list of suppressions.
     */
-    QList<Suppressions::Suppression> getSuppressions() const {
+    std::vector<Suppressions::Suppression> getSuppressions() const {
         return mSuppressions;
     }
 
@@ -171,7 +170,7 @@ public:
     * @brief Get filename for the project file.
     * @return file name.
     */
-    QString getFilename() const {
+    std::string getFilename() const {
         return mFilename;
     }
 
@@ -179,15 +178,15 @@ public:
     * @brief Set project root path.
     * @param rootpath new project root path.
     */
-    void setRootPath(const QString &rootpath) {
+    void setRootPath(const std::string &rootpath) {
         mRootPath = rootpath;
     }
 
-    void setBuildDir(const QString &buildDir) {
+    void setBuildDir(const std::string &buildDir) {
         mBuildDir = buildDir;
     }
 
-    void setImportProject(const QString &importProject) {
+    void setImportProject(const std::string &importProject) {
         mImportProject = importProject;
     }
 
@@ -199,49 +198,49 @@ public:
      * @brief Set list of includes.
      * @param includes List of defines.
      */
-    void setIncludes(const QStringList &includes);
+    void setIncludes(const std::vector<std::string> &includes);
 
     /**
      * @brief Set list of defines.
      * @param defines List of defines.
      */
-    void setDefines(const QStringList &defines);
+    void setDefines(const std::vector<std::string> &defines);
 
     /**
      * @brief Set list of undefines.
      * @param defines List of undefines.
      */
-    void setUndefines(const QStringList &undefines);
+    void setUndefines(const std::vector<std::string> &undefines);
 
     /**
      * @brief Set list of paths to check.
      * @param paths List of paths.
      */
-    void setCheckPaths(const QStringList &paths);
+    void setCheckPaths(const std::vector<std::string> &paths);
 
     /**
      * @brief Set list of paths to exclude from the check.
      * @param paths List of paths.
      */
-    void setExcludedPaths(const QStringList &paths);
+    void setExcludedPaths(const std::vector<std::string> &paths);
 
     /**
      * @brief Set list of libraries.
      * @param libraries List of libraries.
      */
-    void setLibraries(const QStringList &libraries);
+    void setLibraries(const std::vector<std::string> &libraries);
 
     /**
      * @brief Set platform.
      * @param platform platform.
      */
-    void setPlatform(const QString &platform);
+    void setPlatform(const std::string &platform);
 
     /**
      * @brief Set list of suppressions.
      * @param suppressions List of suppressions.
      */
-    void setSuppressions(const QList<Suppressions::Suppression> &suppressions);
+    void setSuppressions(const std::vector<Suppressions::Suppression> &suppressions);
 
     /**
      * @brief Set list of addons.
@@ -261,13 +260,13 @@ public:
      * @brief Write project file (to disk).
      * @param filename Filename to use.
      */
-    bool write(const QString &filename = QString());
+    bool write(const std::string &filename = std::string());
 
     /**
      * @brief Set filename for the project file.
      * @param filename Filename to use.
      */
-    void setFilename(const QString &filename) {
+    void setFilename(const std::string &filename) {
         mFilename = filename;
     }
 
@@ -282,6 +281,7 @@ protected:
      * @param stringelementname name of each string element
      */
     static void writeStringList(tinyxml2::XMLDocument &xmlDoc, tinyxml2::XMLElement &parent, const QStringList &stringlist, const char startelementname[], const char stringelementname[]);
+    static void writeStringList(tinyxml2::XMLDocument &xmlDoc, tinyxml2::XMLElement &parent, const std::vector<std::string> &stringlist, const char startelementname[], const char stringelementname[]);
 
 private:
 
@@ -290,12 +290,12 @@ private:
     /**
      * @brief Convert paths
      */
-    static QStringList fromNativeSeparators(const QStringList &paths);
+    static std::vector<std::string> fromNativeSeparators(const std::vector<std::string> &paths);
 
     /**
      * @brief Filename (+path) of the project file.
      */
-    QString mFilename;
+    std::string mFilename;
 
     /**
      * @brief Root path (optional) for the project.
@@ -303,13 +303,13 @@ private:
      * the project file are relative to this path. Otherwise paths are relative
      * to project file's path.
      */
-    QString mRootPath;
+    std::string mRootPath;
 
     /** Cppcheck build dir */
-    QString mBuildDir;
+    std::string mBuildDir;
 
     /** Visual studio project/solution , compile database */
-    QString mImportProject;
+    std::string mImportProject;
 
     /**
      * Should all visual studio configurations be analyzed?
@@ -321,42 +321,42 @@ private:
     /**
      * @brief List of include directories used to search include files.
      */
-    QStringList mIncludeDirs;
+    std::vector<std::string> mIncludeDirs;
 
     /**
      * @brief List of defines.
      */
-    QStringList mDefines;
+    std::vector<std::string> mDefines;
 
     /**
      * @brief List of undefines.
      */
-    QStringList mUndefines;
+    std::vector<std::string> mUndefines;
 
     /**
      * @brief List of paths to check.
      */
-    QStringList mPaths;
+    std::vector<std::string> mPaths;
 
     /**
      * @brief Paths excluded from the check.
      */
-    QStringList mExcludedPaths;
+    std::vector<std::string> mExcludedPaths;
 
     /**
      * @brief List of libraries.
      */
-    QStringList mLibraries;
+    std::vector<std::string> mLibraries;
 
     /**
      * @brief Platform
      */
-    QString mPlatform;
+    std::string mPlatform;
 
     /**
      * @brief List of suppressions.
      */
-    QList<Suppressions::Suppression> mSuppressions;
+    std::vector<Suppressions::Suppression> mSuppressions;
 
     /**
      * @brief List of addons.

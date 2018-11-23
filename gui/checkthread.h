@@ -69,7 +69,7 @@ public:
         mClangIncludePaths = s;
     }
 
-    void setSuppressions(const QList<Suppressions::Suppression> &s) {
+    void setSuppressions(const std::vector<Suppressions::Suppression> &s) {
         mSuppressions = s;
     }
 
@@ -152,7 +152,7 @@ private:
     QStringList mAddonsAndTools;
     QString mDataDir;
     QStringList mClangIncludePaths;
-    QList<Suppressions::Suppression> mSuppressions;
+    std::vector<Suppressions::Suppression> mSuppressions;
     QString mMisraFile;
 };
 /// @}

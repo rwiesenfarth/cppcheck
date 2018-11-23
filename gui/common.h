@@ -21,6 +21,8 @@
 
 #include <QMap>
 #include <QString>
+#include <string>
+#include <vector>
 
 /// @addtogroup GUI
 /// @{
@@ -108,6 +110,52 @@
 #define SETTINGS_LAST_APP_PATH          "Last application path"
 
 #define SETTINGS_LAST_ANALYZE_FILES_FILTER  "Last analyze files filter"
+
+/**
+ * @brief Convert from std::string to QString
+ * Assumes the std::string contains UTF-8 encoded characters to support i18n.
+ * @param value A UTF-8 encoded std::string
+ * @return The QString equivalent of the string
+ */
+inline QString stdToQt(const std::string &value) {
+    return QString::fromUtf8(value.c_str());
+}
+
+/**
+ * @brief Convert from std::vector<std::string> to QStringList
+ * Assumes the std::string-s contain UTF-8 encoded characters to support i18n.
+ * @param value A std::vector of UTF-8 encoded std::string-s
+ * @return The QStringList equivalent of the vector
+ */
+inline QStringList stdToQt(const std::vector<std::string> &value) {
+    QStringList result;
+    for(const auto &s : value)
+        result << stdToQt(s);
+    return result;
+}
+
+/**
+ * @brief Convert from QString to std::string
+ * Assumes the std::string-s will contain UTF-8 encoded characters to support i18n.
+ * @param value A QStringList (may contain international characters)
+ * @return The std::vector of UTF-8 encoded std::string's equivalent of the QStringList
+ */
+inline std::string qtToStd(const QString &value) {
+    return std::string(value.toUtf8().constData());
+}
+
+/**
+ * @brief Convert from QStringList to std::vector<std::string>
+ * Assumes the std::string will contain UTF-8 encoded characters to support i18n.
+ * @param value A QString (may contain international characters)
+ * @return The UTF-8 encoded std::string equivalent of the QString
+ */
+inline std::vector<std::string> qtToStd(const QStringList &value) {
+    std::vector<std::string> result;
+    for (const auto &s : value)
+        result.push_back(qtToStd(s));
+    return result;
+}
 
 /**
  * @brief Obtains the path of specified type
