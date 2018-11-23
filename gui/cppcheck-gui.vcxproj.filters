@@ -120,9 +120,6 @@
     <ClCompile Include="printablereport.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="projectfile.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="projectfiledialog.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
@@ -553,10 +550,5 @@
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="cppcheck-gui.rc" />
-  </ItemGroup>
-  <ItemGroup>
-    <ClInclude Include="projectfile.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
   </ItemGroup>
 </Project>

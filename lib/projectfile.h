@@ -16,14 +16,18 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
+//---------------------------------------------------------------------------
 #ifndef PROJECT_FILE_H
 #define PROJECT_FILE_H
+//---------------------------------------------------------------------------
+
+#include "config.h"
+#include "suppressions.h"
+
+#include <tinyxml/tinyxml2.h>
 
 #include <string>
 #include <vector>
-
-#include "suppressions.h"
-#include <tinyxml/tinyxml2.h>
 
 /// @addtogroup Core
 /// @{
@@ -34,7 +38,7 @@
 * The project files contain project-specific settings for checking. For
 * example a list of include paths.
 */
-class ProjectFile {
+class CPPCHECKLIB ProjectFile {
 
 public:
     explicit ProjectFile();

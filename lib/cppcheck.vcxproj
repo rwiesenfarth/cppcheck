@@ -83,6 +83,7 @@
     <ClCompile Include="platform.cpp" />
     <ClCompile Include="preprocessor.cpp" />
     <ClCompile Include="importproject.cpp" />
+    <ClCompile Include="projectfile.cpp" />
     <ClCompile Include="settings.cpp" />
     <ClCompile Include="suppressions.cpp" />
     <ClCompile Include="symboldatabase.cpp" />
@@ -134,6 +135,7 @@
     <ClInclude Include="platform.h" />
     <ClInclude Include="preprocessor.h" />
     <ClInclude Include="importproject.h" />
+    <ClInclude Include="projectfile.h" />
     <ClInclude Include="settings.h" />
     <ClInclude Include="suppressions.h" />
     <ClInclude Include="symboldatabase.h" />

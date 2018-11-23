@@ -29,9 +29,6 @@
     <ClInclude Include="filelister.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="..\gui\projectfile.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="main.cpp">
@@ -47,9 +44,6 @@
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="cmdlineparser.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="..\gui\projectfile.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>

@@ -24,14 +24,13 @@
 #include "importproject.h"
 #include "path.h"
 #include "platform.h"
+#include "projectfile.h"
 #include "settings.h"
 #include "standards.h"
 #include "suppressions.h"
 #include "threadexecutor.h" // Threading model
 #include "timer.h"
 #include "utils.h"
-
-#include "../gui/projectfile.h"
 
 #include <algorithm>
 #include <cstdio>

@@ -17,8 +17,11 @@
  */
 
 #include "projectfile.h"
-#include "common.h"
 #include "path.h"
+
+// This is a copy of the values in gui/common.h; however, the strings do not need to be identical
+#define CLANG_ANALYZER   "clang-analyzer"
+#define CLANG_TIDY       "clang-tidy"
 
 static const char ProjectElementName[] = "project";
 static const char ProjectVersionAttrib[] = "version";

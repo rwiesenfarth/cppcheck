@@ -161,7 +161,6 @@
     <ClCompile Include="newsuppressiondialog.cpp" />
     <ClCompile Include="platforms.cpp" />
     <ClCompile Include="printablereport.cpp" />
-    <ClCompile Include="projectfile.cpp" />
     <ClCompile Include="projectfiledialog.cpp" />
     <ClCompile Include="report.cpp" />
     <ClCompile Include="resultstree.cpp" />
@@ -306,16 +305,6 @@
       <Outputs Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">temp\generated\moc_platforms.cpp;%(Outputs)</Outputs>
     </CustomBuild>
     <ClInclude Include="printablereport.h" />
-    <ClInclude Include="projectfile.h">
-      <AdditionalInputs Condition="'$(Configuration)|$(Platform)'=='Release|x64'">projectfile.h;%(AdditionalInputs)</AdditionalInputs>
-      <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">D:\Develop\qt-5.6.2_TP-vs2015\bin\moc.exe  -DUNICODE -DWIN32 -DWIN64 -DCPPCHECKLIB_IMPORT -DQT_NO_DEBUG -DQT_PRINTSUPPORT_LIB -DQT_WIDGETS_LIB -DQT_GUI_LIB -DQT_CORE_LIB -D_MSC_VER=1900 -D_WIN32 -D_WIN64 -ID:/Develop/qt-5.6.2_TP-vs2015/mkspecs/win32-msvc2015 -ID:/Develop/GIT_Work/cppcheck/gui -ID:/Develop/GIT_Work/cppcheck/gui -ID:/Develop/GIT_Work/cppcheck/lib -ID:/Develop/qt-5.6.2_TP-vs2015/include -ID:/Develop/qt-5.6.2_TP-vs2015/include/QtPrintSupport -ID:/Develop/qt-5.6.2_TP-vs2015/include/QtWidgets -ID:/Develop/qt-5.6.2_TP-vs2015/include/QtGui -ID:/Develop/qt-5.6.2_TP-vs2015/include/QtCore projectfile.h -o temp\generated\moc_projectfile.cpp</Command>
-      <Message Condition="'$(Configuration)|$(Platform)'=='Release|x64'">MOC projectfile.h</Message>
-      <Outputs Condition="'$(Configuration)|$(Platform)'=='Release|x64'">temp\generated\moc_projectfile.cpp;%(Outputs)</Outputs>
-      <AdditionalInputs Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">projectfile.h;%(AdditionalInputs)</AdditionalInputs>
-      <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">D:\Develop\qt-5.6.2_TP-vs2015\bin\moc.exe  -DUNICODE -DWIN32 -DWIN64 -DCPPCHECKLIB_IMPORT -DQT_PRINTSUPPORT_LIB -DQT_WIDGETS_LIB -DQT_GUI_LIB -DQT_CORE_LIB -D_MSC_VER=1900 -D_WIN32 -D_WIN64 -ID:/Develop/qt-5.6.2_TP-vs2015/mkspecs/win32-msvc2015 -ID:/Develop/GIT_Work/cppcheck/gui -ID:/Develop/GIT_Work/cppcheck/gui -ID:/Develop/GIT_Work/cppcheck/lib -ID:/Develop/qt-5.6.2_TP-vs2015/include -ID:/Develop/qt-5.6.2_TP-vs2015/include/QtPrintSupport -ID:/Develop/qt-5.6.2_TP-vs2015/include/QtWidgets -ID:/Develop/qt-5.6.2_TP-vs2015/include/QtGui -ID:/Develop/qt-5.6.2_TP-vs2015/include/QtCore projectfile.h -o temp\generated\moc_projectfile.cpp</Command>
-      <Message Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">MOC projectfile.h</Message>
-      <Outputs Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">temp\generated\moc_projectfile.cpp;%(Outputs)</Outputs>
-    </ClInclude>
     <CustomBuild Include="projectfiledialog.h">
       <AdditionalInputs Condition="'$(Configuration)|$(Platform)'=='Release|x64'">projectfiledialog.h;%(AdditionalInputs)</AdditionalInputs>
       <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">D:\Develop\qt-5.6.2_TP-vs2015\bin\moc.exe  -DUNICODE -DWIN32 -DWIN64 -DCPPCHECKLIB_IMPORT -DQT_NO_DEBUG -DQT_PRINTSUPPORT_LIB -DQT_WIDGETS_LIB -DQT_GUI_LIB -DQT_CORE_LIB -D_MSC_VER=1900 -D_WIN32 -D_WIN64 -ID:/Develop/qt-5.6.2_TP-vs2015/mkspecs/win32-msvc2015 -ID:/Develop/GIT_Work/cppcheck/gui -ID:/Develop/GIT_Work/cppcheck/gui -ID:/Develop/GIT_Work/cppcheck/lib -ID:/Develop/qt-5.6.2_TP-vs2015/include -ID:/Develop/qt-5.6.2_TP-vs2015/include/QtPrintSupport -ID:/Develop/qt-5.6.2_TP-vs2015/include/QtWidgets -ID:/Develop/qt-5.6.2_TP-vs2015/include/QtGui -ID:/Develop/qt-5.6.2_TP-vs2015/include/QtCore projectfiledialog.h -o temp\generated\moc_projectfiledialog.cpp</Command>

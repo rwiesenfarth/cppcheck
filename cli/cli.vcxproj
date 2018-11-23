@@ -390,7 +390,6 @@
     <ResourceCompile Include="version.rc" />
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="..\gui\projectfile.h" />
     <ClInclude Include="..\lib\config.h" />
     <ClInclude Include="cmdlineparser.h" />
     <ClInclude Include="cppcheckexecutor.h" />
@@ -403,7 +402,6 @@
     </ProjectReference>
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="..\gui\projectfile.cpp" />
     <ClCompile Include="cmdlineparser.cpp" />
     <ClCompile Include="cppcheckexecutor.cpp" />
     <ClCompile Include="filelister.cpp" />
