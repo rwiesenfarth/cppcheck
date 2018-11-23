@@ -16,13 +16,6 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#include <QObject>
-#include <QString>
-#include <QXmlStreamReader>
-#include <QXmlStreamWriter>
-#include <QFile>
-#include <QFileInfo>
-#include <QDir>
 #include "projectfile.h"
 #include "common.h"
 #include "path.h"
@@ -207,7 +200,7 @@ bool ProjectFile::read( const std::string &filename )
     if (addonList) {
         auto addon = addonList->FirstChildElement(AddonElementName);
         while (addon) {
-            mAddons << stdToQt(charPointerToString(addon->GetText()));
+            mAddons.push_back(charPointerToString(addon->GetText()));
             addon = addon->NextSiblingElement(AddonElementName);
         }
     }
@@ -227,7 +220,7 @@ bool ProjectFile::read( const std::string &filename )
     if (tagList) {
         auto tag = tagList->FirstChildElement(TagElementName);
         while (tag) {
-            mTags << stdToQt(charPointerToString(tag->GetText()));
+            mTags.push_back(charPointerToString(tag->GetText()));
             tag = tag->NextSiblingElement(TagElementName);
         }
     }
@@ -275,7 +268,7 @@ void ProjectFile::setSuppressions(const std::vector<Suppressions::Suppression> &
     mSuppressions = suppressions;
 }
 
-void ProjectFile::setAddons(const QStringList &addons)
+void ProjectFile::setAddons(const std::vector<std::string> &addons)
 {
     mAddons = addons;
 }
@@ -387,11 +380,11 @@ bool ProjectFile::write(const std::string &filename)
     writeStringList(xmlDoc, *project, mAddons, AddonsElementName, AddonElementName);
 
     {
-        QStringList tools;
+        std::vector<std::string> tools;
         if (mClangAnalyzer)
-            tools << CLANG_ANALYZER;
+            tools.push_back(CLANG_ANALYZER);
         if (mClangTidy)
-            tools << CLANG_TIDY;
+            tools.push_back(CLANG_TIDY);
         writeStringList(xmlDoc, *project, tools, ToolsElementName, ToolElementName);
     }
 
@@ -399,20 +392,6 @@ bool ProjectFile::write(const std::string &filename)
 
     auto result = xmlDoc.SaveFile(mFilename.c_str());
     return result == tinyxml2::XML_SUCCESS;
-}
-
-void ProjectFile::writeStringList(tinyxml2::XMLDocument &xmlDoc, tinyxml2::XMLElement &parent, const QStringList &stringlist, const char startelementname[], const char stringelementname[])
-{
-    if (stringlist.isEmpty())
-        return;
-
-    auto list = xmlDoc.NewElement(startelementname);
-    parent.InsertEndChild(list);
-    for (auto str : stringlist) {
-        auto element = xmlDoc.NewElement(stringelementname);
-        element->SetText(str.toUtf8().constData());
-        list->InsertEndChild(element);
-    }
 }
 
 void ProjectFile::writeStringList(tinyxml2::XMLDocument &xmlDoc, tinyxml2::XMLElement &parent, const std::vector<std::string> &stringlist, const char startelementname[], const char stringelementname[])
@@ -442,12 +421,12 @@ std::vector<std::string> ProjectFile::fromNativeSeparators(const std::vector<std
     return ret;
 }
 
-QStringList ProjectFile::getAddonsAndTools() const
+std::vector<std::string> ProjectFile::getAddonsAndTools() const
 {
-    QStringList ret(mAddons);
+    auto ret(mAddons);
     if (mClangAnalyzer)
-        ret << CLANG_ANALYZER;
+        ret.push_back(CLANG_ANALYZER);
     if (mClangTidy)
-        ret << CLANG_TIDY;
+        ret.push_back(CLANG_TIDY);
     return ret;
 }

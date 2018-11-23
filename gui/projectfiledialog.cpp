@@ -194,8 +194,10 @@ void ProjectFileDialog::saveSettings() const
 
 static void updateAddonCheckBox(QCheckBox *cb, const ProjectFile *projectFile, const QString &dataDir, const QString &addon)
 {
-    if (projectFile)
-        cb->setChecked(projectFile->getAddons().contains(addon));
+    if (projectFile) {
+        auto list = projectFile->getAddons();
+        cb->setChecked(std::find(list.begin(), list.end(), qtToStd(addon)) != list.end());
+    }
     if (CheckThread::getAddonFilePath(dataDir, addon + ".py").isEmpty()) {
         cb->setEnabled(false);
         cb->setText(cb->text() + QObject::tr(" (Not found)"));
@@ -266,7 +268,7 @@ void ProjectFileDialog::loadFromProjectFile(const ProjectFile *projectFile)
         mUI.mToolClangTidy->setText(tr("Clang-tidy (not found)"));
         mUI.mToolClangTidy->setEnabled(false);
     }
-    mUI.mEditTags->setText(projectFile->getTags().join(';'));
+    mUI.mEditTags->setText(stdToQt(projectFile->getTags()).join(';'));
     updatePathsAndDefines();
 }
 
@@ -301,10 +303,10 @@ void ProjectFileDialog::saveToProjectFile(ProjectFile *projectFile) const
         list << "cert";
     if (mUI.mAddonMisra->isChecked())
         list << "misra";
-    projectFile->setAddons(list);
+    projectFile->setAddons(qtToStd(list));
     projectFile->setClangAnalyzer(mUI.mToolClangAnalyzer->isChecked());
     projectFile->setClangTidy(mUI.mToolClangTidy->isChecked());
-    projectFile->setTags(mUI.mEditTags->text().split(";", QString::SkipEmptyParts));
+    projectFile->setTags(qtToStd(mUI.mEditTags->text().split(";", QString::SkipEmptyParts)));
 }
 
 void ProjectFileDialog::ok()

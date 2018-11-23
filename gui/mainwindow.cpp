@@ -454,7 +454,7 @@ void MainWindow::doAnalyzeProject(ImportProject p, const bool checkLibrary, cons
 
     //mThread->SetanalyzeProject(true);
     if (mProjectFile) {
-        mThread->setAddonsAndTools(mProjectFile->getAddonsAndTools(), mSettings->value(SETTINGS_MISRA_FILE).toString());
+        mThread->setAddonsAndTools(stdToQt(mProjectFile->getAddonsAndTools()), mSettings->value(SETTINGS_MISRA_FILE).toString());
         QString clangHeaders = mSettings->value(SETTINGS_VS_INCLUDE_PATHS).toString();
         mThread->setClangIncludePaths(clangHeaders.split(";"));
         mThread->setSuppressions(mProjectFile->getSuppressions());
@@ -497,7 +497,7 @@ void MainWindow::doAnalyzeFiles(const QStringList &files, const bool checkLibrar
 
     mThread->setFiles(fileNames);
     if (mProjectFile && !checkConfiguration)
-        mThread->setAddonsAndTools(mProjectFile->getAddonsAndTools(), mSettings->value(SETTINGS_MISRA_FILE).toString());
+        mThread->setAddonsAndTools(stdToQt(mProjectFile->getAddonsAndTools()), mSettings->value(SETTINGS_MISRA_FILE).toString());
     QDir inf(mCurrentDirectory);
     const QString checkPath = inf.canonicalPath();
     setPath(SETTINGS_LAST_CHECK_PATH, checkPath);
@@ -1454,7 +1454,7 @@ QString MainWindow::getLastResults() const
 bool MainWindow::loadLastResults()
 {
     if (mProjectFile)
-        mUI.mResults->setTags(mProjectFile->getTags());
+        mUI.mResults->setTags(stdToQt(mProjectFile->getTags()));
     const QString &lastResults = getLastResults();
     if (lastResults.isEmpty())
         return false;
@@ -1476,8 +1476,8 @@ void MainWindow::analyzeProject(const ProjectFile *projectFile, const bool check
 
     QDir::setCurrent(inf.absolutePath());
 
-    mThread->setAddonsAndTools(projectFile->getAddonsAndTools(), mSettings->value(SETTINGS_MISRA_FILE).toString());
-    mUI.mResults->setTags(projectFile->getTags());
+    mThread->setAddonsAndTools(stdToQt(projectFile->getAddonsAndTools()), mSettings->value(SETTINGS_MISRA_FILE).toString());
+    mUI.mResults->setTags(stdToQt(projectFile->getTags()));
 
     // If the root path is not given or is not "current dir", use project
     // file's location directory as root path

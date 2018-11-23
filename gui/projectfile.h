@@ -19,15 +19,13 @@
 #ifndef PROJECT_FILE_H
 #define PROJECT_FILE_H
 
-#include <QString>
-#include <QStringList>
 #include <string>
 #include <vector>
 
 #include "suppressions.h"
 #include <tinyxml/tinyxml2.h>
 
-/// @addtogroup GUI
+/// @addtogroup Core
 /// @{
 
 
@@ -136,7 +134,7 @@ public:
     * @brief Get list addons.
     * @return list of addons.
     */
-    QStringList getAddons() const {
+    std::vector<std::string> getAddons() const {
         return mAddons;
     }
 
@@ -144,7 +142,7 @@ public:
     * @brief Get list of addons and tools.
     * @return list of addons and tools.
     */
-    QStringList getAddonsAndTools() const;
+    std::vector<std::string> getAddonsAndTools() const;
 
     bool getClangAnalyzer() const {
         return false; //mClangAnalyzer;
@@ -162,7 +160,7 @@ public:
         mClangTidy = c;
     }
 
-    QStringList getTags() const {
+    std::vector<std::string> getTags() const {
         return mTags;
     }
 
@@ -246,13 +244,13 @@ public:
      * @brief Set list of addons.
      * @param addons List of addons.
      */
-    void setAddons(const QStringList &addons);
+    void setAddons(const std::vector<std::string> &addons);
 
     /**
      * @brief Set tags.
      * @param tags tag list
      */
-    void setTags(const QStringList &tags) {
+    void setTags(const std::vector<std::string> &tags) {
         mTags = tags;
     }
 
@@ -280,7 +278,6 @@ protected:
      * @param startelementname name of start element
      * @param stringelementname name of each string element
      */
-    static void writeStringList(tinyxml2::XMLDocument &xmlDoc, tinyxml2::XMLElement &parent, const QStringList &stringlist, const char startelementname[], const char stringelementname[]);
     static void writeStringList(tinyxml2::XMLDocument &xmlDoc, tinyxml2::XMLElement &parent, const std::vector<std::string> &stringlist, const char startelementname[], const char stringelementname[]);
 
 private:
@@ -368,7 +365,7 @@ private:
     /**
      * @brief List of addons.
      */
-    QStringList mAddons;
+    std::vector<std::string> mAddons;
 
     /** @brief Execute clang analyzer? */
     bool mClangAnalyzer;
@@ -379,7 +376,7 @@ private:
     /**
      * @brief Warning tags
      */
-    QStringList mTags;
+    std::vector<std::string> mTags;
 };
 /// @}
 #endif  // PROJECT_FILE_H
