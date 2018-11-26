@@ -19,6 +19,8 @@
 #include "projectfile.h"
 #include "path.h"
 
+#include "tinyxml2.h"
+
 // This is a copy of the values in gui/common.h; however, the strings do not need to be identical
 #define CLANG_ANALYZER   "clang-analyzer"
 #define CLANG_TIDY       "clang-tidy"

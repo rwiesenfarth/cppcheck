@@ -24,10 +24,13 @@
 #include "config.h"
 #include "suppressions.h"
 
-#include <tinyxml/tinyxml2.h>
-
 #include <string>
 #include <vector>
+
+namespace tinyxml2 {
+    class XMLDocument;
+    class XMLElement;
+}
 
 /// @addtogroup Core
 /// @{
