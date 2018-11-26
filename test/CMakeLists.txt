@@ -11,6 +11,9 @@ if (BUILD_TESTS)
     if (HAVE_RULES)
         target_link_libraries(testrunner pcre)
     endif()
+    if (WIN32 AND NOT BORLAND)
+        target_link_libraries(testrunner Shlwapi.lib)
+    endif()
 
     add_custom_target(copy_cfg ALL
         COMMENT "Copying cfg files")
