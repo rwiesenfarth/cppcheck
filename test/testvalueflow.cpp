@@ -2239,6 +2239,15 @@ private:
                "  return x;\n"
                "}";
         ASSERT_EQUALS(true, testValueOfX(code, 8U, 1));
+
+        code = "int f(int *);\n"
+               "int g() {\n"
+               "  const int a = 1;\n"
+               "  int x = 11;\n"
+               "  c = (a && f(&x));\n"
+               "  if (x == 42) {}\n"
+               "}";
+        ASSERT_EQUALS(false, testValueOfX(code, 6U, 11));
     }
 
     void valueFlowForwardTernary() {
@@ -3505,6 +3514,41 @@ private:
                "  }\n"
                "}";
         ASSERT_EQUALS("", isKnownContainerSizeValue(tokenValues(code, "ints . front"), 0));
+
+        code = "void f(const std::list<int> &ints) {\n"
+               "  if (ints.size() == 3) {\n"
+               "    ints.front();\n" // <- container size is 3
+               "  }\n"
+               "}";
+        ASSERT_EQUALS("", isKnownContainerSizeValue(tokenValues(code, "ints . front"), 3));
+
+        code = "void f(const std::list<int> &ints) {\n"
+               "  if (ints.size() <= 3) {\n"
+               "    ints.front();\n" // <- container size is 3
+               "  }\n"
+               "}";
+        ASSERT_EQUALS("", isPossibleContainerSizeValue(tokenValues(code, "ints . front"), 3));
+
+        code = "void f(const std::list<int> &ints) {\n"
+               "  if (ints.size() >= 3) {\n"
+               "    ints.front();\n" // <- container size is 3
+               "  }\n"
+               "}";
+        ASSERT_EQUALS("", isPossibleContainerSizeValue(tokenValues(code, "ints . front"), 3));
+
+        code = "void f(const std::list<int> &ints) {\n"
+               "  if (ints.size() < 3) {\n"
+               "    ints.front();\n" // <- container size is 2
+               "  }\n"
+               "}";
+        ASSERT_EQUALS("", isPossibleContainerSizeValue(tokenValues(code, "ints . front"), 2));
+
+        code = "void f(const std::list<int> &ints) {\n"
+               "  if (ints.size() > 3) {\n"
+               "    ints.front();\n" // <- container size is 4
+               "  }\n"
+               "}";
+        ASSERT_EQUALS("", isPossibleContainerSizeValue(tokenValues(code, "ints . front"), 4));
 
         code = "void f(const std::list<int> &ints) {\n"
                "  if (ints.empty() == false) {\n"

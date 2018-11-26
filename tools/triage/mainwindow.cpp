@@ -47,15 +47,20 @@ void MainWindow::loadFile()
             url = line;
             errorMessage.clear();
         } else if (!url.isEmpty() && QRegExp(".*: (error|warning|style|note):.*").exactMatch(line)) {
-            if (!errorMessage.isEmpty())
-                errorMessage += '\n';
-            errorMessage += line;
-        } else if (!url.isEmpty() && QRegExp("(head|1.8.) .*:[0-9]+:.*\\]").exactMatch(line)) {
+            if (line.indexOf(": note:") > 0)
+                errorMessage += '\n' + line;
+            else if (errorMessage.isEmpty()) {
+                errorMessage = url + '\n' + line;
+            } else {
+                allErrors << errorMessage;
+                errorMessage = url + '\n' + line;
+            }
+        } else if (!url.isEmpty() && QRegExp("^(head|1.[0-9][0-9]) .*:[0-9]+:.*\\]").exactMatch(line)) {
             allErrors << (url + '\n' + line);
         }
     }
-    if (!url.isEmpty() && !errorMessage.isEmpty())
-        allErrors << (url + "\n" + errorMessage);
+    if (!errorMessage.isEmpty())
+        allErrors << errorMessage;
     if (allErrors.size() > 100) {
         // remove items in /test/
         for (int i = allErrors.size()-1; i >= 0 && allErrors.size() > 100; --i) {
@@ -105,7 +110,7 @@ void MainWindow::showResult(QListWidgetItem *item)
         return;
     const QString url = lines[0];
     QString msg = lines[1];
-    if (msg.startsWith("head ") || msg.startsWith("1.84 "))
+    if (QRegExp("^(head|1.[0-9][0-9]) .*").exactMatch(msg))
         msg = msg.mid(5);
     const QString archiveName = url.mid(url.lastIndexOf("/") + 1);
     const int pos1 = msg.indexOf(":");
