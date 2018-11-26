@@ -326,10 +326,6 @@ Paramètres : -l(ligne) (fichier)</translation>
         <translation>&amp;Aide</translation>
     </message>
     <message>
-        <source>&amp;Check</source>
-        <translation type="obsolete">&amp;Vérifier</translation>
-    </message>
-    <message>
         <source>&amp;Edit</source>
         <translation>&amp;Édition</translation>
     </message>
@@ -364,10 +360,6 @@ Paramètres : -l(ligne) (fichier)</translation>
     <message>
         <source>Ctrl+D</source>
         <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <source>&amp;Recheck files</source>
-        <translation type="obsolete">&amp;Revérifier les fichiers</translation>
     </message>
     <message>
         <source>Ctrl+R</source>
@@ -430,14 +422,6 @@ Paramètres : -l(ligne) (fichier)</translation>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <source>No suitable files found to check!</source>
-        <translation type="obsolete">Pas de fichiers trouvés à vérifier !</translation>
-    </message>
-    <message>
-        <source>Select directory to check</source>
-        <translation type="obsolete">Sélectionner le répertoire à vérifier</translation>
-    </message>
-    <message>
         <source>License</source>
         <translation>Licence</translation>
     </message>
@@ -474,28 +458,8 @@ Paramètres : -l(ligne) (fichier)</translation>
         <translation>Catégories</translation>
     </message>
     <message>
-        <source>Check files</source>
-        <translation type="obsolete">Vérifier les fichiers</translation>
-    </message>
-    <message>
-        <source>Check directory</source>
-        <translation type="obsolete">Vérifier un répertoire</translation>
-    </message>
-    <message>
-        <source>Stop checking</source>
-        <translation type="obsolete">Arrêter la vérification</translation>
-    </message>
-    <message>
-        <source>Style warnings</source>
-        <translation type="vanished">Avertissement de style</translation>
-    </message>
-    <message>
         <source>Show style warnings</source>
         <translation>Afficher les avertissements de style</translation>
-    </message>
-    <message>
-        <source>Errors</source>
-        <translation type="vanished">Erreurs</translation>
     </message>
     <message>
         <source>Show errors</source>
@@ -554,16 +518,8 @@ Paramètres : -l(ligne) (fichier)</translation>
         <translation>Statistiques</translation>
     </message>
     <message>
-        <source>Warnings</source>
-        <translation type="vanished">Avertissements</translation>
-    </message>
-    <message>
         <source>Show warnings</source>
         <translation>Afficher les avertissements</translation>
-    </message>
-    <message>
-        <source>Performance warnings</source>
-        <translation type="vanished">Avertissements de performance</translation>
     </message>
     <message>
         <source>Show performance warnings</source>
@@ -582,10 +538,6 @@ Paramètres : -l(ligne) (fichier)</translation>
         <translation>Afficher les messages d&apos;information</translation>
     </message>
     <message>
-        <source>Portability</source>
-        <translation type="vanished">Portabilité</translation>
-    </message>
-    <message>
         <source>Show portability warnings</source>
         <translation>Afficher les problèmes de portabilité</translation>
     </message>
@@ -596,14 +548,6 @@ Paramètres : -l(ligne) (fichier)</translation>
     <message>
         <source>Open the report file</source>
         <translation>Ouvrir le rapport</translation>
-    </message>
-    <message>
-        <source>Checking is running.
-
-Do you want to stop the checking and exit Cppcheck?</source>
-        <translation type="obsolete">Vérification en cours.
-
-Voulez-vous arrêter la vérification et quitter CppCheck ?</translation>
     </message>
     <message>
         <source>Project files (*.cppcheck);;All files(*.*)</source>
@@ -692,10 +636,6 @@ Opening a new XML file will clear current results.Do you want to proceed?</sourc
 L&apos;ouverture d&apos;un nouveau fichier XML effacera les resultats. Voulez-vous confirmar l&apos;opération ?</translation>
     </message>
     <message>
-        <source>Select files to check</source>
-        <translation type="obsolete">Sélectionner les fichiers à vérifier</translation>
-    </message>
-    <message>
         <source>Cppcheck GUI - Command line parameters</source>
         <translation type="unfinished"></translation>
     </message>
@@ -766,18 +706,6 @@ L&apos;ouverture d&apos;un nouveau fichier XML effacera les resultats. Voulez-vo
     <message>
         <source>Open library editor</source>
         <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <source>Auto-detect language</source>
-        <translation type="vanished">Auto-detection du langage</translation>
-    </message>
-    <message>
-        <source>&amp;Recheck modified files</source>
-        <translation type="obsolete">&amp;Revérifier les fichiers modifiés</translation>
-    </message>
-    <message>
-        <source>&amp;Recheck all files</source>
-        <translation type="obsolete">&amp;Revérifier tous les fichiers</translation>
     </message>
     <message>
         <source>Unknown element</source>
@@ -1052,17 +980,6 @@ Do you want to stop the analysis and exit Cppcheck?</source>
     </message>
 </context>
 <context>
-    <name>Project</name>
-    <message>
-        <source>Could not read the project file.</source>
-        <translation type="vanished">Impossible de lire le fichier projet.</translation>
-    </message>
-    <message>
-        <source>Could not write the project file.</source>
-        <translation type="vanished">Impossible d&apos;écrire dans le fichier projet.</translation>
-    </message>
-</context>
-<context>
     <name>ProjectFile</name>
     <message>
         <source>Project File</source>
@@ -1077,10 +994,6 @@ Do you want to stop the analysis and exit Cppcheck?</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <source>Project</source>
-        <translation type="vanished">Projet</translation>
-    </message>
-    <message>
         <source>Add...</source>
         <translation>Ajouter...</translation>
     </message>
@@ -1093,18 +1006,6 @@ Do you want to stop the analysis and exit Cppcheck?</source>
         <translation>Supprimer</translation>
     </message>
     <message>
-        <source>Includes</source>
-        <translation type="obsolete">Inclusions</translation>
-    </message>
-    <message>
-        <source>Include directories:</source>
-        <translation type="obsolete">Inclure les répertoires</translation>
-    </message>
-    <message>
-        <source>Root:</source>
-        <translation type="obsolete">Répertoire racine</translation>
-    </message>
-    <message>
         <source>Up</source>
         <translation>Monter</translation>
     </message>
@@ -1113,20 +1014,8 @@ Do you want to stop the analysis and exit Cppcheck?</source>
         <translation>Descendre</translation>
     </message>
     <message>
-        <source>Exclude</source>
-        <translation type="vanished">Exclure</translation>
-    </message>
-    <message>
-        <source>Libraries:</source>
-        <translation type="vanished">Bibliothèques</translation>
-    </message>
-    <message>
         <source>Suppressions</source>
         <translation>Suppressions</translation>
-    </message>
-    <message>
-        <source>Suppression list:</source>
-        <translation type="vanished">Liste de suppressions</translation>
     </message>
     <message>
         <source>Add</source>
@@ -1392,18 +1281,6 @@ Do you want to stop the analysis and exit Cppcheck?</source>
         <translation>Fichier indéterminé</translation>
     </message>
     <message>
-        <source>Copy filename</source>
-        <translation type="vanished">Copier le nom du fichier</translation>
-    </message>
-    <message>
-        <source>Copy full path</source>
-        <translation type="vanished">Copier le chemin complet</translation>
-    </message>
-    <message>
-        <source>Copy message</source>
-        <translation type="vanished">Copier le message</translation>
-    </message>
-    <message>
         <source>Cppcheck</source>
         <translation type="unfinished"></translation>
     </message>
@@ -1434,14 +1311,6 @@ Merci de vérifier que le chemin de l&apos;application et que les paramètres so
     <message>
         <source>Could not find the file!</source>
         <translation>Fichier introuvable !</translation>
-    </message>
-    <message>
-        <source>Could not find file:
-%1
-Please select the directory where file is located.</source>
-        <translation type="vanished">Fichier introuvable:
-%1
-Veuillez sélectionner le répertoire où est situé le fichier.</translation>
     </message>
     <message>
         <source>Select Directory</source>
@@ -1482,10 +1351,6 @@ Please select the default editor application in preferences/Applications.</sourc
     <message>
         <source>Id</source>
         <translation>Id</translation>
-    </message>
-    <message>
-        <source>Copy message id</source>
-        <translation type="vanished">Copier l&apos;identifiant du message</translation>
     </message>
     <message>
         <source>Hide all with id</source>
@@ -1575,14 +1440,6 @@ Pour configurer les erreurs affichées, ouvrez le menu d&apos;affichage.</transl
     <message>
         <source>Failed to read the report.</source>
         <translation>Erreur lors de la lecture du rapport</translation>
-    </message>
-    <message>
-        <source>Summary</source>
-        <translation type="vanished">Résumé</translation>
-    </message>
-    <message>
-        <source>Message</source>
-        <translation type="vanished">Message</translation>
     </message>
     <message>
         <source>%p% (%1 of %2 files checked)</source>
@@ -1691,10 +1548,6 @@ Pour configurer les erreurs affichées, ouvrez le menu d&apos;affichage.</transl
         <translation>Sauvegarder le chemin complet des fichiers dans les rapports</translation>
     </message>
     <message>
-        <source>Include paths:</source>
-        <translation type="vanished">Inclure les chemins</translation>
-    </message>
-    <message>
         <source>Add...</source>
         <translation>Ajouter...</translation>
     </message>
@@ -1713,14 +1566,6 @@ Pour configurer les erreurs affichées, ouvrez le menu d&apos;affichage.</transl
     <message>
         <source>Language</source>
         <translation>Langue</translation>
-    </message>
-    <message>
-        <source>Paths</source>
-        <translation type="vanished">Chemins</translation>
-    </message>
-    <message>
-        <source>Edit</source>
-        <translation type="vanished">Editer</translation>
     </message>
     <message>
         <source>Remove</source>
@@ -1804,10 +1649,6 @@ Pour configurer les erreurs affichées, ouvrez le menu d&apos;affichage.</transl
     <message>
         <source>N/A</source>
         <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <source>Select include directory</source>
-        <translation type="obsolete">Selectionner un répertoire à inclure</translation>
     </message>
     <message>
         <source>[Default]</source>

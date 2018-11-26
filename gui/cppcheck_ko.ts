@@ -89,10 +89,6 @@ Kate로 파일을 열고, 해당 행으로 이동하는 예제:
         <translation>Cppcheck</translation>
     </message>
     <message>
-        <source>You must specify a name, a path and parameters for the application!</source>
-        <translation type="obsolete">응용 프로그램의 이름, 경로 및 인자를 명시해야 합니다!</translation>
-    </message>
-    <message>
         <source>You must specify a name, a path and optionally parameters for the application!</source>
         <translation type="unfinished"></translation>
     </message>
@@ -312,33 +308,6 @@ Kate로 파일을 열고, 해당 행으로 이동하는 예제:
     </message>
 </context>
 <context>
-    <name>LogView</name>
-    <message>
-        <source>Checking Log</source>
-        <translation type="vanished">로그 확인</translation>
-    </message>
-    <message>
-        <source>Clear</source>
-        <translation type="vanished">지우기</translation>
-    </message>
-    <message>
-        <source>Save Log</source>
-        <translation type="vanished">로그 저장</translation>
-    </message>
-    <message>
-        <source>Text files (*.txt *.log);;All files (*.*)</source>
-        <translation type="vanished">텍스트 파일 (*.txt *.log);;모든 파일 (*.*)</translation>
-    </message>
-    <message>
-        <source>Cppcheck</source>
-        <translation type="vanished">Cppcheck</translation>
-    </message>
-    <message>
-        <source>Could not open file for writing: &quot;%1&quot;</source>
-        <translation type="vanished">기록할 파일 열기 실패: &quot;%1&quot;</translation>
-    </message>
-</context>
-<context>
     <name>MainWindow</name>
     <message>
         <source>Cppcheck</source>
@@ -359,10 +328,6 @@ Kate로 파일을 열고, 해당 행으로 이동하는 예제:
     <message>
         <source>&amp;Help</source>
         <translation>도움말(&amp;H)</translation>
-    </message>
-    <message>
-        <source>&amp;Check</source>
-        <translation type="obsolete">검사(&amp;C)</translation>
     </message>
     <message>
         <source>&amp;Edit</source>
@@ -397,10 +362,6 @@ Kate로 파일을 열고, 해당 행으로 이동하는 예제:
         <translation>파일(&amp;F)...</translation>
     </message>
     <message>
-        <source>Check files</source>
-        <translation type="obsolete">파일 검사</translation>
-    </message>
-    <message>
         <source>Ctrl+F</source>
         <translation>Ctrl+F</translation>
     </message>
@@ -409,16 +370,8 @@ Kate로 파일을 열고, 해당 행으로 이동하는 예제:
         <translation>디렉토리(&amp;D)...</translation>
     </message>
     <message>
-        <source>Check directory</source>
-        <translation type="obsolete">디렉토리 검사</translation>
-    </message>
-    <message>
         <source>Ctrl+D</source>
         <translation>Ctrl+D</translation>
-    </message>
-    <message>
-        <source>&amp;Recheck files</source>
-        <translation type="obsolete">파일 재검사(&amp;R)</translation>
     </message>
     <message>
         <source>Ctrl+R</source>
@@ -427,10 +380,6 @@ Kate로 파일을 열고, 해당 행으로 이동하는 예제:
     <message>
         <source>&amp;Stop</source>
         <translation>중지(&amp;S)</translation>
-    </message>
-    <message>
-        <source>Stop checking</source>
-        <translation type="obsolete">검사 중지</translation>
     </message>
     <message>
         <source>Esc</source>
@@ -457,16 +406,8 @@ Kate로 파일을 열고, 해당 행으로 이동하는 예제:
         <translation>설정(&amp;P)</translation>
     </message>
     <message>
-        <source>Style warnings</source>
-        <translation type="vanished">스타일 경고</translation>
-    </message>
-    <message>
         <source>Show style warnings</source>
         <translation>스타일 경고 표시</translation>
-    </message>
-    <message>
-        <source>Errors</source>
-        <translation type="vanished">에러</translation>
     </message>
     <message>
         <source>Show errors</source>
@@ -553,16 +494,8 @@ Kate로 파일을 열고, 해당 행으로 이동하는 예제:
         <translation>통계 보기(&amp;S)</translation>
     </message>
     <message>
-        <source>Warnings</source>
-        <translation type="vanished">경고</translation>
-    </message>
-    <message>
         <source>Show warnings</source>
         <translation>경고 표시</translation>
-    </message>
-    <message>
-        <source>Performance warnings</source>
-        <translation type="vanished">성능 경고</translation>
     </message>
     <message>
         <source>Show performance warnings</source>
@@ -579,10 +512,6 @@ Kate로 파일을 열고, 해당 행으로 이동하는 예제:
     <message>
         <source>Show information messages</source>
         <translation>정보 표시</translation>
-    </message>
-    <message>
-        <source>Portability</source>
-        <translation type="vanished">이식성 경고</translation>
     </message>
     <message>
         <source>Show portability warnings</source>
@@ -617,22 +546,6 @@ Kate로 파일을 열고, 해당 행으로 이동하는 예제:
         <translation>Windows 64-bit</translation>
     </message>
     <message>
-        <source>Platforms</source>
-        <translation type="vanished">플랫폼</translation>
-    </message>
-    <message>
-        <source>C++11</source>
-        <translation type="vanished">C++11</translation>
-    </message>
-    <message>
-        <source>C99</source>
-        <translation type="vanished">C99</translation>
-    </message>
-    <message>
-        <source>Posix</source>
-        <translation type="vanished">Posix</translation>
-    </message>
-    <message>
         <source>Quick Filter:</source>
         <translation>빠른 필터:</translation>
     </message>
@@ -645,16 +558,8 @@ This is probably because the settings were changed between the Cppcheck versions
 Cppcheck 버전간 설정 방법 차이때문인 것으로 보입니다. 편집기 설정을 검사(및 수정)해주세요, 그렇지 않으면 편집기가 제대로 시작하지 않습니다.</translation>
     </message>
     <message>
-        <source>No suitable files found to check!</source>
-        <translation type="obsolete">검사할 수 있는 파일이 없습니다!</translation>
-    </message>
-    <message>
         <source>You must close the project file before selecting new files or directories!</source>
         <translation>새로운 파일이나 디렉토리를 선택하기 전에 프로젝트 파일을 닫으세요!</translation>
-    </message>
-    <message>
-        <source>Select directory to check</source>
-        <translation type="obsolete">검사할 디렉토리 선택</translation>
     </message>
     <message>
         <source>Found project file: %1
@@ -665,28 +570,12 @@ Do you want to load this project file instead?</source>
 이 프로젝트 파일을 불러오겠습니까?</translation>
     </message>
     <message>
-        <source>Found project files from the directory.
-
-Do you want to proceed checking without using any of these project files?</source>
-        <translation type="obsolete">디렉토리에 프로젝트 파일 존재.
-
-이 프로젝트 파일을 사용하지 않고 검사를 계속하시겠습니까?</translation>
-    </message>
-    <message>
         <source>XML files (*.xml)</source>
         <translation>XML 파일 (*.xml)</translation>
     </message>
     <message>
         <source>Open the report file</source>
         <translation>보고서 파일 열기</translation>
-    </message>
-    <message>
-        <source>Checking is running.
-
-Do you want to stop the checking and exit Cppcheck?</source>
-        <translation type="obsolete">검사 중.
-
-검사를 중지하고 Cppcheck을 종료하시겠습니까?</translation>
     </message>
     <message>
         <source>License</source>
@@ -697,20 +586,8 @@ Do you want to stop the checking and exit Cppcheck?</source>
         <translation>제작자</translation>
     </message>
     <message>
-        <source>XML files version 2 (*.xml);;XML files version 1 (*.xml);;Text files (*.txt);;CSV files (*.csv)</source>
-        <translation type="obsolete">XML 파일 버전 2 (*.xml);;XML 파일 버전 1 (*.xml);;텍스트 파일 (*.txt);;CSV 파일 (*.csv)</translation>
-    </message>
-    <message>
         <source>Save the report file</source>
         <translation>보고서 파일 저장</translation>
-    </message>
-    <message>
-        <source>XML files version 1 (*.xml)</source>
-        <translation type="obsolete">XML 파일 버전 1 (*.xml)</translation>
-    </message>
-    <message>
-        <source>XML files version 2 (*.xml)</source>
-        <translation type="obsolete">XML 파일 버전 2 (*.xml)</translation>
     </message>
     <message>
         <source>Text files (*.txt)</source>
@@ -723,18 +600,6 @@ Do you want to stop the checking and exit Cppcheck?</source>
     <message>
         <source>Cppcheck - %1</source>
         <translation>Cppcheck - %1</translation>
-    </message>
-    <message>
-        <source>Failed to change the user interface language:
-
-%1
-
-The user interface language has been reset to English. Open the Preferences-dialog to select any of the available languages.</source>
-        <translation type="obsolete">언어 변경 실패:
-
-%1
-
-언어가 영어로 초기화 됐습니다. 설정창을 열어서 설정 가능한 언어를 선택하세요.</translation>
     </message>
     <message>
         <source>Project files (*.cppcheck);;All files(*.*)</source>
@@ -779,28 +644,12 @@ Opening a new XML file will clear current results.Do you want to proceed?</sourc
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <source>Select files to check</source>
-        <translation type="obsolete">검사할 파일 선택</translation>
-    </message>
-    <message>
         <source>Cppcheck GUI - Command line parameters</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
         <source>C++ standard</source>
         <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <source>C11</source>
-        <translation type="obsolete">C11</translation>
-    </message>
-    <message>
-        <source>C89</source>
-        <translation type="obsolete">C89</translation>
-    </message>
-    <message>
-        <source>C++03</source>
-        <translation type="obsolete">C++03</translation>
     </message>
     <message>
         <source>Error</source>
@@ -1132,27 +981,8 @@ Do you want to stop the analysis and exit Cppcheck?</source>
         <translation>Windows 64-bit</translation>
     </message>
     <message>
-        <source>Built-in</source>
-        <translation type="obsolete">내장 방식</translation>
-    </message>
-    <message>
         <source>Native</source>
         <translation type="unfinished"></translation>
-    </message>
-</context>
-<context>
-    <name>Project</name>
-    <message>
-        <source>Cppcheck</source>
-        <translation type="vanished">Cppcheck</translation>
-    </message>
-    <message>
-        <source>Could not read the project file.</source>
-        <translation type="vanished">프로젝트 파일을 읽을 수 없습니다.</translation>
-    </message>
-    <message>
-        <source>Could not write the project file.</source>
-        <translation type="vanished">프로젝트 파일에 쓸 수 없습니다.</translation>
     </message>
 </context>
 <context>
@@ -1162,16 +992,8 @@ Do you want to stop the analysis and exit Cppcheck?</source>
         <translation>프로젝트 파일</translation>
     </message>
     <message>
-        <source>Project</source>
-        <translation type="vanished">프로젝트</translation>
-    </message>
-    <message>
         <source>Defines:</source>
         <translation>Defines:</translation>
-    </message>
-    <message>
-        <source>Root:</source>
-        <translation type="obsolete">Root:</translation>
     </message>
     <message>
         <source>Paths:</source>
@@ -1190,24 +1012,12 @@ Do you want to stop the analysis and exit Cppcheck?</source>
         <translation>제거</translation>
     </message>
     <message>
-        <source>Includes</source>
-        <translation type="obsolete">Includes</translation>
-    </message>
-    <message>
-        <source>Include directories:</source>
-        <translation type="obsolete">Include 디렉토리:</translation>
-    </message>
-    <message>
         <source>Up</source>
         <translation>위로</translation>
     </message>
     <message>
         <source>Down</source>
         <translation>아래로</translation>
-    </message>
-    <message>
-        <source>Exclude</source>
-        <translation type="vanished">Exclude</translation>
     </message>
     <message>
         <source>Suppressions</source>
@@ -1481,10 +1291,6 @@ Do you want to stop the analysis and exit Cppcheck?</source>
         <translation>미정의된 파일</translation>
     </message>
     <message>
-        <source>[Inconclusive]</source>
-        <translation type="vanished">[불확실]</translation>
-    </message>
-    <message>
         <source>style</source>
         <translation>스타일</translation>
     </message>
@@ -1511,18 +1317,6 @@ Do you want to stop the analysis and exit Cppcheck?</source>
     <message>
         <source>debug</source>
         <translation>디버그</translation>
-    </message>
-    <message>
-        <source>Copy filename</source>
-        <translation type="vanished">파일이름 복사</translation>
-    </message>
-    <message>
-        <source>Copy full path</source>
-        <translation type="vanished">전체 경로 복사</translation>
-    </message>
-    <message>
-        <source>Copy message</source>
-        <translation type="vanished">메시지 복사</translation>
     </message>
     <message>
         <source>Hide</source>
@@ -1559,14 +1353,6 @@ Please check the application path and parameters are correct.</source>
         <translation>%1을 시잘할 수 없습니다
 
 경로와 인자가 정확한지 확인하세요.</translation>
-    </message>
-    <message>
-        <source>Could not find file:
-%1
-Please select the directory where file is located.</source>
-        <translation type="vanished">파일 찾기 실패:
-%1
-파일이 위치한 디렉토리를 선택하세요.</translation>
     </message>
     <message>
         <source>Select Directory</source>
@@ -1670,14 +1456,6 @@ To toggle what kind of errors are shown, open view menu.</source>
         <translation>결과 불러오기 실패.</translation>
     </message>
     <message>
-        <source>Summary</source>
-        <translation type="vanished">요약</translation>
-    </message>
-    <message>
-        <source>Message</source>
-        <translation type="vanished">내용</translation>
-    </message>
-    <message>
         <source>Id</source>
         <translation type="unfinished"></translation>
     </message>
@@ -1776,20 +1554,8 @@ To toggle what kind of errors are shown, open view menu.</source>
         <translation>Inline suppression 사용</translation>
     </message>
     <message>
-        <source>Paths</source>
-        <translation type="vanished">경로</translation>
-    </message>
-    <message>
-        <source>Include paths:</source>
-        <translation type="vanished">Include 경로:</translation>
-    </message>
-    <message>
         <source>Add...</source>
         <translation>추가...</translation>
-    </message>
-    <message>
-        <source>Edit</source>
-        <translation type="vanished">편집</translation>
     </message>
     <message>
         <source>Remove</source>
@@ -1822,18 +1588,6 @@ To toggle what kind of errors are shown, open view menu.</source>
     <message>
         <source>Language</source>
         <translation>언어</translation>
-    </message>
-    <message>
-        <source>Advanced</source>
-        <translation type="obsolete">고급</translation>
-    </message>
-    <message>
-        <source>&amp;Show inconclusive errors</source>
-        <translation type="obsolete">불확실한 에러 표시(&amp;S)</translation>
-    </message>
-    <message>
-        <source>S&amp;how internal warnings in log</source>
-        <translation type="obsolete">로그에 내부 경고 표시(&amp;H)</translation>
     </message>
     <message>
         <source>Display error Id in column &quot;Id&quot;</source>
@@ -1909,10 +1663,6 @@ To toggle what kind of errors are shown, open view menu.</source>
     <message>
         <source>[Default]</source>
         <translation>[기본]</translation>
-    </message>
-    <message>
-        <source>Select include directory</source>
-        <translation type="vanished">Include 디렉토리 선택</translation>
     </message>
     <message>
         <source> [Default]</source>
