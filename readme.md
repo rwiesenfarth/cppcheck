@@ -29,17 +29,31 @@ To build the GUI, you need Qt.
 When building the command line tool, [PCRE](http://www.pcre.org/) is optional. It is used if you build with rules.
 
 There are multiple compilation choices:
-* qmake - cross platform build tool
 * cmake - cross platform build tool
+* qmake - cross platform build tool
 * Windows: Visual Studio (VS 2010 and above)
 * Windows: Qt Creator + mingw
 * gnu make
 * g++ 4.6 (or later)
 * clang++
 
+### cmake
+
+If you are familiar with CMake, this might be the best option. On Windows, the generated solution includes both GUI (if Qt is available) and the testrunner, generating the most complete package.
+ 
+On Windows, just run cmake-gui and choose your favorite generator. To build the GUI, you need Qt and must specify the path to Qt's CMake files:
+
+```shell
+cmake-gui -DCMAKE_PREFIX_PATH=%QTDIR%/lib/cmake
+```
+
+On Linux, it's probably the same procedure, but I did not (yet) test it there.
+
 ### qmake
 
-You can use the gui/gui.pro file to build the GUI.
+There is a build.bat script in the root directory. Just call it to get the usage message.
+
+You can also use the gui/gui.pro file to build the GUI directly.
 
 ```shell
 cd gui
