@@ -36,7 +36,7 @@ set(CMAKE_CXX_FLAGS_ASAN "-g -fsanitize=address,undefined -fno-sanitize-recover=
     CACHE STRING "Compiler flags in asan build"
     FORCE)
 
-if ("${CMAKE_CXX_COMPILER_ID}" STREQUAL "GNU")
+if (${CMAKE_CXX_COMPILER_ID} STREQUAL "GNU")
     execute_process(COMMAND ${CMAKE_CXX_COMPILER} -dumpversion OUTPUT_VARIABLE GCC_VERSION)
     if (NOT (GCC_VERSION VERSION_GREATER 4.6 OR GCC_VERSION VERSION_EQUAL 4.6))
         message(FATAL_ERROR "${PROJECT_NAME} c++11 support requires g++ 4.6 or greater, but it is ${GCC_VERSION}")
@@ -67,7 +67,7 @@ if ("${CMAKE_CXX_COMPILER_ID}" STREQUAL "GNU")
         set(EXTRA_C_FLAGS "${EXTRA_C_FLAGS} -Wno-unnamed-type-template-args")
     endif()
 
-elseif ("${CMAKE_CXX_COMPILER_ID}" STREQUAL "Clang")
+elseif (${CMAKE_CXX_COMPILER_ID} STREQUAL "Clang")
 
    if(NOT EXISTS ${CMAKE_CXX_COMPILER})
       MESSAGE( FATAL_ERROR "Clang++ not found. " )
@@ -84,7 +84,7 @@ elseif ("${CMAKE_CXX_COMPILER_ID}" STREQUAL "Clang")
       MESSAGE(FATAL_ERROR "Not use clang for generate code coverage. Use gcc. ")
    endif()
 
-elseif ("${CMAKE_CXX_COMPILER_ID}" STREQUAL "c++-analyzer")
+elseif (${CMAKE_CXX_COMPILER_ID} STREQUAL "c++-analyzer")
 
    if(NOT EXISTS ${CMAKE_CXX_COMPILER})
       MESSAGE( FATAL_ERROR "c++-analyzer not found. " )
@@ -96,9 +96,9 @@ elseif ("${CMAKE_CXX_COMPILER_ID}" STREQUAL "c++-analyzer")
 
 endif()
 
-if ("${CMAKE_CXX_COMPILER_ID}" STREQUAL "GNU" OR
-    "${CMAKE_CXX_COMPILER_ID}" STREQUAL "Clang" OR
-    "${CMAKE_CXX_COMPILER_ID}" STREQUAL "c++-analyzer" )
+if (${CMAKE_CXX_COMPILER_ID} STREQUAL "GNU" OR
+    ${CMAKE_CXX_COMPILER_ID} STREQUAL "Clang" OR
+    ${CMAKE_CXX_COMPILER_ID} STREQUAL "c++-analyzer" )
 
    if(WARNINGS_ANSI_ISO)
            set(EXTRA_C_FLAGS "-Wextra -pedantic ${EXTRA_C_FLAGS}")
@@ -116,8 +116,8 @@ if ("${CMAKE_CXX_COMPILER_ID}" STREQUAL "GNU" OR
 
 endif()
 
-if ("${CMAKE_SYSTEM_NAME}" STREQUAL "Linux" AND
-    "${CMAKE_CXX_COMPILER_ID}" STREQUAL "Clang")
+if (${CMAKE_SYSTEM_NAME} STREQUAL "Linux" AND
+    ${CMAKE_CXX_COMPILER_ID} STREQUAL "Clang")
 
     set(EXTRA_C_FLAGS "${EXTRA_C_FLAGS} -U_GLIBCXX_DEBUG")
 endif()
