@@ -1,6 +1,6 @@
 lessThan(QT_MAJOR_VERSION, 5): error(requires >= Qt 5 (You used: $$QT_VERSION))
 
-TEMPLATE = vcapp
+TEMPLATE = app
 TARGET = cppcheck-gui
 CONFIG += qt warn_on release
 DEPENDPATH += . \
@@ -99,7 +99,6 @@ HEADERS += aboutdialog.h \
            mainwindow.h \
            platforms.h \
            printablereport.h \
-           projectfile.h \
            projectfiledialog.h \
            report.h \
            resultstree.h \
@@ -136,7 +135,6 @@ SOURCES += aboutdialog.cpp \
            mainwindow.cpp\
            platforms.cpp \
            printablereport.cpp \
-           projectfile.cpp \
            projectfiledialog.cpp \
            report.cpp \
            resultstree.cpp \

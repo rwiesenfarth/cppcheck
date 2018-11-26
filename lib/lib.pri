@@ -41,6 +41,7 @@ HEADERS += $${PWD}/check.h \
            $${PWD}/pathmatch.h \
            $${PWD}/platform.h \
            $${PWD}/preprocessor.h \
+           $${PWD}/projectfile.h \
            $${PWD}/settings.h \
            $${PWD}/suppressions.h \
            $${PWD}/symboldatabase.h \
@@ -89,6 +90,7 @@ SOURCES += $${PWD}/analyzerinfo.cpp \
            $${PWD}/pathmatch.cpp \
            $${PWD}/platform.cpp \
            $${PWD}/preprocessor.cpp \
+           $${PWD}/projectfile.cpp \
            $${PWD}/settings.cpp \
            $${PWD}/suppressions.cpp \
            $${PWD}/symboldatabase.cpp \
