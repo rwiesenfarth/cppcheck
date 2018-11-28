@@ -1,9 +1,9 @@
 <?xml version="1.0" encoding="utf-8"?>
 <Include>
-  <?define CliBuildDir = "..\bin" ?>
-  <?define GuiBuildDir = "..\bin" ?>
-  <?define TranslationsDir = "..\gui" ?>
-  <?define CfgsDir = "..\cfg" ?>
+  <?define CliBuildDir = "..\build\bin\Release" ?>
+  <?define GuiBuildDir = "..\build\bin\Release" ?>
+  <?define TranslationsDir = "..\build\gui" ?>
+  <?define CfgsDir = "..\build\bin\cfg" ?>
   <?define PtfsDir = "..\platforms" ?>
   <?define AddonsDir = "..\addons" ?>
   <?define QtDllDir = "$(env.QTDIR)\bin" ?>

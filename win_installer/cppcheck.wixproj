@@ -40,6 +40,6 @@
   </Target>
 
   <Target Name="Validate">
-    <Exec Command="..\bin\cppcheck --rule=. --version" />
+    <Exec Command="..\build\bin\Release\cppcheck --rule=. --version" />
   </Target>
 </Project>
