@@ -9,6 +9,7 @@ if (BUILD_TESTS)
 
     add_executable(testrunner ${hdrs} ${srcs} $<TARGET_OBJECTS:lib_objs> $<TARGET_OBJECTS:cli_objs> $<TARGET_OBJECTS:tinyxml_objs> $<TARGET_OBJECTS:simplecpp_objs>)
     if (HAVE_RULES)
+        target_compile_definitions(testrunner PUBLIC HAVE_RULES)
         target_link_libraries(testrunner ${PCRE})
     endif()
     if (WIN32 AND NOT BORLAND)
