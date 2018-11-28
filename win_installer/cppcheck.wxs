@@ -17,9 +17,9 @@
       <Directory Id='System32' FileSource='SystemFolder' />
       <Directory Id='$(var.PlatformProgramFilesFolder)' Name='PFiles'>
         <Directory Id='INSTALLDIR' Name='$(var.ProductNameShort)'>
-          <Component Id='cppcheckcore.dll' Guid='$(var.cppcheckcoreGUID)'>
+          <!--<Component Id='cppcheckcore.dll' Guid='$(var.cppcheckcoreGUID)'>
             <File Id='cppcheckcore.dll' Name='cppcheck-core.dll' DiskId='1' Source='$(var.CliBuildDir)\cppcheck-core.dll' KeyPath='yes' />
-          </Component>
+          </Component>-->
           <Component Id='cppcheck.exe' Guid='$(var.cppcheckGUID)'>
             <File Id='cppcheck.exe' Name='cppcheck.exe' DiskId='1' Source='$(var.CliBuildDir)\cppcheck.exe' KeyPath='yes' />
           </Component>
@@ -128,7 +128,7 @@
     <Feature Id='Complete' Title='$(var.ProductName)' Description='The complete package.'
       Display='expand' Level='1' AllowAdvertise='no' ConfigurableDirectory='INSTALLDIR' >
       <Feature Id='CppcheckCore' Display='hidden' AllowAdvertise='no' Title='Cppcheck-Core' Description='Cppcheck core components' Level='1'>
-        <ComponentRef Id='cppcheckcore.dll' />
+        <!--<ComponentRef Id='cppcheckcore.dll' />-->
         <ComponentRef Id='RegistryEntries' />
         <ComponentRef Id='BaseDocs' />
         <ComponentRef Id='MandatoryCfgs' />
