@@ -6,7 +6,8 @@
   <?define CfgsDir = "..\cfg" ?>
   <?define PtfsDir = "..\platforms" ?>
   <?define AddonsDir = "..\addons" ?>
-  <?define QtDllDir = "..\bin" ?>
+  <?define QtDllDir = "$(env.QTDIR)\bin" ?>
+  <?define QtPluginDir = "$(env.QTDIR)\plugins" ?>
 
   <?if $(var.Platform) = x64 ?>
     <?define CrtMergeModule = "$(env.CommonProgramFiles)\Merge Modules\Microsoft_VC150_CRT_x64.msm" ?>

@@ -41,7 +41,7 @@
           </Component>
           <Directory Id='QtPlatformsFolder' Name='platforms'>
             <Component Id='QtPlatforms' DiskId='1' Guid='$(var.qtplatformsGUID)'>
-              <File Id='qwindowsdll' Name='qwindows.dll' Source='$(var.QtDllDir)\platforms\qwindows.dll' />
+              <File Id='qwindowsdll' Name='qwindows.dll' Source='$(var.QtPluginDir)\platforms\qwindows.dll' />
             </Component>
           </Directory>
           <!--<Directory Id='QtStylesFolder' Name='styles'>
