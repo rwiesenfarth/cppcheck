@@ -66,6 +66,8 @@ When the solution is built, the installer package is created with these steps:
 
 The final .msi file is generated in win_installer\Build.
 
+If you are using a different version of Visual Studio, you have to adjust the CrtMergeModule settings in win_installer\config.wxi to reflect the correct runtime.
+
 ## Compiling - alternative approaches
 
 Any C++11 compiler should work. For compilers with partial C++11 support it may work. If your compiler has the C++11 features that are available in Visual Studio 2013 / GCC 4.6 then it will work.
