@@ -350,6 +350,10 @@ CheckMemoryLeak::AllocType CheckMemoryLeak::functionReturnType(const Function* f
     if (!func || !func->hasBody())
         return No;
 
+    // workaround for crash with OpenCV include
+    if (!func->functionScope)
+        return No;
+
     // Get return pointer..
     unsigned int varid = 0;
     for (const Token *tok2 = func->functionScope->bodyStart; tok2 != func->functionScope->bodyEnd; tok2 = tok2->next()) {
